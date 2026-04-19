@@ -1,0 +1,313 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+/* Стандартная тема (Светлая) */
+:root {
+    --bg: #e6e9ef;
+    --text: #2d3047;
+    --accent: #5542ff;
+    --white: #ffffff;
+    --shadow: 4px 4px 8px #242320;
+    --inner-shadow: inset 4px 4px 8px #c8cbd0, inset -4px -4px 8px #ffffff;
+}
+
+/* =========================================
+   🌑 ПОЛНЫЙ, БЛАГОРОДНЫЙ DARK MODE (БЕЗ СВЕЧЕНИЯ)
+   ========================================= */
+[data-theme="dark"] {
+    --bg: #121212;           /* Глубокий, мягкий чёрный */
+    --text: #e0e0e0;         /* Светло-серый текст (не слепит) */
+    --accent: #ff4757;       /* Мягкий красный акцент */
+    --white: #1e1e1e;        /* Цвет "внутренних" панелей */
+    
+    /* Вместо тени - тонкая обводка */
+    --shadow: 4px 4px 8px #242320, -4px -4px 8px #ff4757;;
+    --inner-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Ретро тема (Бежевая) */
+[data-theme="sunset"] {
+    --bg: #f4ecd8;
+    --text: #5d4037;
+    --accent: #d84315;
+    --white: #fff9eb;
+    --shadow: 4px 4px 8px #242320;
+    --inner-shadow: inset 4px 4px 8px #d1c8b1, inset -4px -4px 8px #ffffff;
+}
+
+/* Изумрудная тема (Лесная) */
+[data-theme="forest"] {
+    --bg: #e8f5e9;
+    --text: #1b5e20;
+    --accent: #2e7d32;
+    --white: #ffffff;
+    --shadow: 4px 4px 8px #242320;
+    --inner-shadow: inset 4px 4px 8px #cfdbd0, inset -4px -4px 8px #ffffff;
+}
+
+body {
+    background-color: var(--bg); color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.ui-wrapper { position: absolute; top: 0; left: 0; width: 100%; z-index: 100; pointer-events: none; }
+.top-bar { padding: 25px; display: flex; justify-content: space-between; align-items: center; }
+.logo { font-size: 26px; font-weight: 900; letter-spacing: -1px; color: var(--accent); }
+.profile-title { font-weight: 900; font-size: 28px; color: var(--text); letter-spacing: -0.5px; margin-top: 0; margin-bottom: 30px;}
+
+/* =========================================
+   КНОПКИ (Пружинистые анимации ВОЗВРАЩЕНЫ)
+========================================= */
+.glass-btn {
+    background: var(--bg); border: none; padding: 12px 25px; border-radius: 15px;
+    box-shadow: var(--shadow); color: var(--text); font-weight: 700; cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    pointer-events: auto;
+}
+.glass-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 5px 5px 10px #c8cbd0, -5px -5px 10px #ffffff;
+    color: var(--accent);
+}
+.glass-btn:active { 
+    box-shadow: var(--inner-shadow); 
+    transform: translateY(0) scale(0.95); 
+}
+.glass-btn.primary { color: var(--accent); }
+button:focus { outline: none !important; }
+
+
+/* =========================================
+   ПОЛЯ ВВОДА (Оригинальные тени)
+========================================= */
+input, textarea, select { outline: none; border: none; font-family: 'Inter', sans-serif; }
+.neomorph-input, .soft-input, input[type="text"], input[type="date"], textarea {
+    width: 100%; background: var(--bg);
+    border: 2px solid transparent; border-radius: 12px;
+    box-shadow: inset 4px 4px 8px #c1c9d7, inset -4px -4px 8px #ffffff;
+    padding: 12px 15px; margin-bottom: 15px; color: var(--text);
+    font-size: 14px; font-weight: 600; transition: all 0.3s ease;
+}
+.neomorph-input:focus, .soft-input:focus {
+    box-shadow: inset 2px 2px 5px #c1c9d7, inset -2px -2px 5px #ffffff, 0 0 10px rgba(109, 93, 252, 0.2);
+    border: 2px solid rgba(109, 93, 252, 0.3);
+}
+
+[data-theme="dark"] .neomorph-input {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5) !important;
+    color: #fff !important;
+}
+
+/* =========================================
+   САЙДПАНЕЛЬ (Упругое выезжание)
+========================================= */
+.side-panel {
+    position: fixed; right: 25px; top: 100px; width: 340px;
+    height: calc(100% - 130px); max-height: 82vh;
+    background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(25px);
+    border: 2px solid rgba(255, 255, 255, 0.6); /* ФИКС: Сделал рамку видимой в светлой теме */
+    border-radius: 28px; box-shadow: var(--shadow); padding: 30px; z-index: 90;
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex; flex-direction: column; overflow-y: auto;
+}
+.side-panel.hidden { transform: translateX(400px) scale(0.9); opacity: 0; visibility: hidden; }
+
+[data-theme="dark"] .side-panel {
+    background: rgba(30, 30, 30, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* =========================================
+   АВАТАРКИ (ФИКС КОТА И БЕЛОГО ФОНА)
+========================================= */
+.avatar-circle, .avatar-big-wrapper {
+    background: transparent !important; /* Убил белый фон */
+    overflow: hidden !important;        /* Кот больше не вылезет за круг */
+    border-radius: 50% !important;
+    border: 3px solid var(--accent);
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 !important;
+}
+.avatar-circle { width: 90px; height: 90px; margin: 0 auto 25px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.avatar-circle:hover { transform: rotate(8deg) scale(1.08); }
+.avatar-big-wrapper { width: 200px; height: 200px; margin: 0 auto; position: relative; }
+
+.avatar-circle img, .avatar-big-wrapper img, #panelAvatar {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important; /* Идеально вписывает любое фото */
+}
+
+/* Убираем внутреннее свечение с самих картинок */
+#panelAvatar, #modalAvatarPreview {
+    filter: none !important;
+}
+
+/* =========================================
+   РОДСТВО И КНОПКИ В ПАНЕЛИ
+========================================= */
+.rel-section label { font-size: 11px; font-weight: 800; opacity: 0.5; letter-spacing: 1px; color: var(--text); }
+.rel-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 10px; }
+.rel-btn {
+    background: var(--bg); border: none; padding: 12px 5px; border-radius: 12px;
+    box-shadow: var(--shadow); font-size: 11px; cursor: pointer; font-weight: 700; color: var(--text);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.rel-btn:hover { transform: translateY(-3px); color: var(--accent); }
+.rel-btn:active { box-shadow: var(--inner-shadow); transform: scale(0.9); }
+
+[data-theme="dark"] .rel-btn { background: rgba(255,255,255,0.03); color: #aaa; box-shadow: none; border: 1px solid rgba(255,255,255,0.08); }
+[data-theme="dark"] .rel-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+/* =========================================
+   МОДАЛКИ (Плавное растворение)
+========================================= */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(230, 233, 239, 0.8);
+    backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 200;
+    transition: all 0.4s ease;
+}
+.modal-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+[data-theme="dark"] .modal-overlay { background: rgba(0, 0, 0, 0.85); }
+
+.modal-card { 
+    background: var(--bg); padding: 40px; border-radius: 30px; 
+    box-shadow: var(--shadow); width: 380px; 
+    transform: scale(1); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.modal-overlay.hidden .modal-card { transform: scale(0.7) translateY(40px); }
+[data-theme="dark"] .modal-card { background: #1e1e1e; color: #fff; border: 1px solid rgba(255,255,255,0.05); }
+
+.full-profile-card {
+    width: 900px; max-width: 95vw; background: var(--bg); border-radius: 30px;
+    padding: 40px; position: relative; box-shadow: var(--shadow);
+}
+[data-theme="dark"] .full-profile-card { background: #1e1e1e; border: 1px solid rgba(255,255,255,0.05); color: white; }
+
+.profile-layout { display: flex; gap: 40px; align-items: flex-start; }
+.profile-photo-side { flex: 0 0 220px; text-align: center; }
+.profile-info-side { flex: 1; }
+
+.close-x { position: absolute; top: 25px; right: 30px; background: none; border: none; font-size: 35px; color: var(--text); cursor: pointer; opacity: 0.5; transition: 0.4s ease; }
+.close-x:hover { opacity: 1; color: var(--accent); transform: rotate(90deg) scale(1.2); }
+
+.upload-badge {
+    position: absolute; bottom: 10px; right: 10px; background: var(--accent);
+    width: 45px; height: 45px; border-radius: 50%; display: flex;
+    justify-content: center; align-items: center; cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.upload-badge:hover { transform: scale(1.1); }
+.photo-hint { font-size: 11px; opacity: 0.5; margin-top: 15px; }
+
+/* =========================================
+   ДЕРЕВО (Линии и кружки)
+========================================= */
+#canvas { position: fixed; inset: 0; z-index: 1; }
+#viewport { width: 100vw; height: 100vh; }
+
+.link { fill: none; stroke: #b8b9be; stroke-width: 2.5; opacity: 0.5; transition: all 0.4s ease; }
+.link:hover { stroke: var(--accent); opacity: 0.8; stroke-width: 4; }
+[data-theme="dark"] .link { stroke: rgba(255,255,255,0.1); }
+
+.person-node { cursor: pointer; }
+.person-node circle { 
+    fill: var(--white); filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.1)); 
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+}
+.person-node rect, .person-node text { transition: all 0.3s ease; }
+
+.person-node:hover circle { filter: drop-shadow(0px 0px 25px rgba(109, 93, 252, 0.7)); r: 50; }
+.person-node:hover rect { fill: var(--accent); }
+.person-node:hover text { fill: var(--white); }
+
+.person-node.focused circle { stroke: var(--accent); stroke-width: 4; filter: drop-shadow(0px 0px 15px rgba(109, 93, 252, 0.5)); }
+.person-node text { font-weight: 900; fill: var(--text); font-size: 12px; }
+
+[data-theme="dark"] .person-node circle { fill: #252525; stroke: var(--accent); filter: none; }
+[data-theme="dark"] .person-node rect { fill: #1e1e1e; }
+[data-theme="dark"] .person-node text { fill: #fff; }
+
+/* =========================================
+   ДАТЫ, ЛЕЙБЛЫ, ТЕМЫ И ПОИСК
+========================================= */
+.date-row, .flex-row { display: flex; gap: 15px; margin-bottom: 15px; width: 100%; }
+.flex-col { flex: 1; display: flex; flex-direction: column; }
+.input-label { display: block; font-size: 10px; font-weight: 800; color: #888ca8; margin-bottom: 6px; text-transform: uppercase; margin-left: 4px;}
+.alive-check { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--accent); }
+
+input[type="date"]::-webkit-calendar-picker-indicator { background-color: transparent; color: var(--accent); cursor: pointer; opacity: 0.6; transition: 0.2s ease; padding: 5px; }
+input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; transform: scale(1.1); background-color: rgba(109, 93, 252, 0.1); }
+
+.theme-panel-header { display: flex; gap: 12px; margin-right: 20px; align-items: center; }
+.theme-tile { width: 38px; height: 38px; border-radius: 12px; cursor: pointer; border: 2px solid rgba(128, 128, 128, 0.3); transition: 0.3s; box-shadow: var(--shadow); }
+.theme-tile:hover { transform: translateY(-2px); }
+.theme-tile.active { border-color: var(--accent); transform: scale(1.05); }
+
+.search-results { position: absolute; top: 55px; left: 0; right: 0; background: var(--bg); border-radius: 15px; box-shadow: var(--shadow); max-height: 250px; overflow-y: auto; z-index: 1000; padding: 10px; }
+.search-item { padding: 10px 15px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; color: var(--text); }
+.search-item:hover { background: rgba(85, 66, 255, 0.1); color: var(--accent); }
+.search-results.hidden { display: none; }
+
+.custom-toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 12px 24px; border-radius: 20px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s ease; z-index: 2000; }
+.custom-toast.show { bottom: 20px; opacity: 1; }
+
+/* =========================================
+   📱 МОБИЛЬНАЯ АДАПТАЦИЯ (Медиазапросы)
+   ========================================= */
+   @media (max-width: 768px) {
+    /* 1. Шапка в столбик */
+    .top-bar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .search-container {
+        margin-left: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* 2. Панель человека выезжает снизу, а не сбоку */
+    #personPanel {
+        width: 100% !important;
+        height: 60vh !important; /* Занимает 60% экрана снизу */
+        top: auto !important;
+        bottom: 0 !important;
+        right: 0 !important;
+        border-radius: 25px 25px 0 0 !important; /* Закругляем только верх */
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.1) !important;
+    }
+
+    #personPanel:not(.hidden) {
+        transform: translateY(0);
+    }
+
+    /* 3. Модалки на весь экран */
+    .modal-card {
+        width: 95% !important;
+        padding: 20px !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    /* 4. Узлы дерева делаем чуть крупнее, чтобы было проще попадать пальцем */
+    .person-node circle {
+        r: 45; 
+    }
+    .person-node text {
+        font-size: 16px;
+    }
+}

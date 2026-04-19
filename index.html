@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мое Шежере | Soft Heritage</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/2.8.0/dom-to-image-more.min.js"></script>
+
+<div class="ui-wrapper">
+    <div class="top-bar">
+        <h1 class="logo">🌳 SHEDJERE</h1>
+        
+        <div class="search-container" style="pointer-events: auto; margin-left: 20px; flex: 1; max-width: 300px; position: relative;">
+            <input type="text" id="treeSearch" class="neomorph-input" placeholder="🔍 Найти..." style="margin-bottom: 0; padding: 10px 20px;">
+            <div id="searchResults" class="search-results hidden"></div>
+        </div>
+
+    
+        <div style="display: flex; gap: 15px; pointer-events: auto;">
+            <button id="exportBtn" class="glass-btn">📸 Скачать PNG</button>
+            <button id="createPersonBtn" class="glass-btn primary">✨ Начать новое древо</button>
+        </div>
+    </div>
+</div>
+
+    <main class="canvas-area">
+        <svg id="viewport">
+            <g id="scene"></g>
+        </svg>
+    </main>
+
+    <aside id="personPanel" class="side-panel hidden">
+        <div class="avatar-circle">
+            <img id="panelAvatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+        </div>
+
+        <input
+            type="text"
+            id="personNameInput"
+            class="neomorph-input main-name"
+            placeholder="Имя Фамилия"
+            style="text-align: center;"
+        >
+
+        <div class="quick-dates">
+            <input type="text" id="quickBirth" class="neomorph-input small" placeholder="Рождение" readonly>
+            <span class="dash">—</span>
+            <input type="text" id="quickDeath" class="neomorph-input small" placeholder="Смерть" readonly>
+        </div>
+
+        <button id="openFullProfileBtn" class="glass-btn wide">📖 Открыть полную анкету</button>
+
+        <div class="rel-section">
+            <label>ДОБАВИТЬ РОДСТВО</label>
+            <div class="rel-grid">
+                <button id="addParent" class="rel-btn"><span>👵</span>Родитель</button>
+                <button id="addSpouse" class="rel-btn"><span>💍</span>Пара</button>
+                <button id="addChild" class="rel-btn"><span>👶</span>Ребенок</button>
+            </div>
+        </div>
+    </aside>
+
+    <div id="fullProfileModal" class="modal-overlay hidden">
+        <div class="full-profile-card">
+            <button class="close-x" id="closeFullProfile">&times;</button>
+            
+            <div class="profile-layout">
+                <div class="profile-photo-side">
+                    <div class="avatar-big-wrapper" id="modalAvatarContainer">
+                        <img id="modalAvatarPreview" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar">
+                        <label for="uploadPhoto" class="upload-badge">
+                            <span>📸</span>
+                            <input type="file" id="uploadPhoto" hidden accept="image/*">
+                        </label>
+                    </div>
+                    <p class="photo-hint">Кликни на фото, чтобы загрузить</p>
+                </div>
+    
+                <div class="profile-info-side">
+                    <h2 class="profile-title">Информация о родственнике</h2>
+                    
+                    <div class="flex-row">
+                        <div class="flex-col" style="flex: 2;">
+                            <label class="input-label">ФИО / Полное имя</label>
+                            <input type="text" id="fName" class="neomorph-input">
+                        </div>
+                        <div class="flex-col" style="flex: 1;">
+                            <label class="input-label">Девичья фамилия</label>
+                            <input type="text" id="fMaidenName" class="neomorph-input">
+                        </div>
+                    </div>
+    
+                    <div class="flex-row">
+                        <div class="flex-col">
+                            <label class="input-label">🌟 Дата рождения</label>
+                            <input type="text" id="fBirth" class="neomorph-input" placeholder="дд.мм.гггг">
+                        </div>
+                        <div class="flex-col">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label class="input-label" style="margin:0;">🕊️ Дата смерти</label>
+                                <label class="alive-check"><input type="checkbox" id="fIsAlive"> Жив(а)</label>
+                            </div>
+                            <input type="text" id="fDeath" class="neomorph-input" placeholder="дд.мм.гггг">
+                        </div>
+                    </div>
+    
+                    <div class="flex-row">
+                        <div class="flex-col">
+                            <label class="input-label">📍 Место рождения</label>
+                            <input type="text" id="fBirthPlace" class="neomorph-input">
+                        </div>
+                        <div class="flex-col">
+                            <label class="input-label">📍 Место смерти/погребения</label>
+                            <input type="text" id="fDeathPlace" class="neomorph-input">
+                        </div>
+                    </div>
+    
+                    <div class="flex-row">
+                        <div class="flex-col">
+                            <label class="input-label">🎓 Образование</label>
+                            <input type="text" id="fEdu" class="neomorph-input">
+                        </div>
+                        <div class="flex-col">
+                            <label class="input-label">💼 Профессия</label>
+                            <input type="text" id="fProf" class="neomorph-input">
+                        </div>
+                    </div>
+    
+                    <div class="flex-row">
+                        <div class="flex-col">
+                            <label class="input-label">🏠 Место жительства</label>
+                            <input type="text" id="fLiving" class="neomorph-input">
+                        </div>
+                        <div class="flex-col">
+                            <label class="input-label">🪦 Информация о захоронении</label>
+                            <input type="text" id="fBurial" class="neomorph-input">
+                        </div>
+                    </div>
+    
+                    <div class="flex-col">
+                        <label class="input-label">📖 Биография и интересные факты</label>
+                        <textarea id="fBio" class="neomorph-input" style="height: 100px; resize: none;"></textarea>
+                    </div>
+    
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button id="saveProfileBtn" class="glass-btn primary">Сохранить изменения</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 id="modalTitle">Новый человек</h3>
+            <div id="existingList" style="margin-bottom:15px;"></div>
+            <div style="font-size:12px; opacity:.5; margin-bottom:10px;">или создайте нового</div>
+            <input type="text" id="newPersonName" class="neomorph-input" placeholder="Введите имя...">
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button id="closeModalBtn" class="glass-btn" style="flex:1;">Отмена</button>
+                <button id="submitModalBtn" class="glass-btn primary" style="flex:1;">Создать</button>
+            </div>
+        </div>
+    </div>  
+
+    <div id="custom-alert-overlay" class="hidden">
+        <div class="custom-alert-box">
+            <h3 id="custom-alert-message">Текст ошибки</h3>
+            <button type="button" onclick="closeCustomAlert(event)">Понятно</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+
+    <script src="system.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

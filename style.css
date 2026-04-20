@@ -20,7 +20,7 @@
     --white: #1e1e1e;        /* Цвет "внутренних" панелей */
     
     /* Вместо тени - тонкая обводка */
-    --shadow: 4px 4px 8px #242320, -4px -4px 8px #ff4757;;
+    --shadow: 4px 4px 8px #242320, -4px -4px 8px #ffffff;;
     --inner-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
@@ -309,5 +309,106 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; transf
     }
     .person-node text {
         font-size: 16px;
+    }
+}
+
+/* =========================================
+   КНОПКИ ЗУМА ДЛЯ ТЕЛЕФОНОВ
+   ========================================= */
+   .mobile-zoom-controls {
+    position: fixed;
+    bottom: 20px;
+    left: 20px; /* Держим слева, т.к. панель человека выезжает справа/снизу */
+    display: none; /* Прячем на компах */
+    flex-direction: column;
+    gap: 10px;
+    z-index: 999;
+}
+
+.mobile-zoom-controls .glass-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* Делаем их круглыми */
+    font-size: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Показываем кнопки только на экранах телефонов и планшетов */
+/* =========================================
+   📱 ПОЛНАЯ МОБИЛЬНАЯ ОПТИМИЗАЦИЯ
+   ========================================= */
+   @media (max-width: 768px) {
+    /* 1. Компактная шапка */
+    .top-bar {
+        padding: 10px 15px !important;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .logo {
+        font-size: 1.1rem !important;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+    .search-container {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* 2. Панель человека превращается в шторку снизу */
+    #personPanel {
+        width: 100% !important;
+        max-width: 100% !important;
+        right: 0 !important;
+        left: 0 !important;
+        top: auto !important; /* Убираем фиксацию сверху */
+        bottom: 0 !important;
+        height: 65vh !important; /* Занимает 65% экрана */
+        border-radius: 25px 25px 0 0 !important;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.2) !important;
+        padding: 20px !important;
+        overflow-y: auto !important; /* Позволяет листать анкету */
+        z-index: 1001;
+    }
+
+    /* 3. Исправляем модальные окна (создание человека) */
+    .modal-card {
+        width: 95% !important;
+        max-height: 90vh !important;
+        padding: 20px !important;
+        margin: 10px;
+        overflow-y: auto;
+    }
+    
+    .modal-card input, 
+    .modal-card select, 
+    .modal-card textarea {
+        font-size: 16px !important; /* Важно: предотвращает авто-зум в Safari/iOS */
+    }
+
+    /* 4. Кнопки зума выносим в свободную зону слева */
+    .mobile-zoom-controls {
+        position: fixed;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 999;
+    }
+    
+    /* Скрываем кнопки зума, когда открыта панель анкеты, чтобы не мешали */
+    #personPanel:not(.hidden) ~ .mobile-zoom-controls {
+        display: none;
+    }
+
+    /* 5. Увеличиваем кнопки для пальцев */
+    .glass-btn {
+        padding: 12px 20px !important;
+        min-height: 44px; /* Стандарт Apple для тач-зон */
     }
 }

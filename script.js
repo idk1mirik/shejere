@@ -309,7 +309,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <rect x="-60" y="38" width="120" height="24" rx="12" fill="white" opacity="0.9"/>
                 <text y="54" text-anchor="middle" font-size="12px" font-weight="900" fill="var(--text)">${p.name}</text>
             `;
-            g.onclick = e => { e.stopPropagation(); selectPerson(id); };
+            g.onclick = (e) => {
+                e.stopPropagation();
+                if (isMovingCamera) return;
+                selectPerson(id);
+            };
             scene.appendChild(g);
         });
 
@@ -498,39 +502,75 @@ if (modalOverlay) {
     updateTransform();
 
     // =========================================
-    // 📱 ТАЧ-УПРАВЛЕНИЕ (Для телефонов)
+    // 📱 ТАЧ-УПРАВЛЕНИЕ И МОБИЛЬНЫЙ ЗУМ
     // =========================================
     let lastTouchX = 0, lastTouchY = 0;
+    let initialPinchDistance = null;
+    let initialZoom = 1;
 
+    // Подключаем кнопки + и -
+    const btnZoomIn = getEl('zoomInBtn');
+    const btnZoomOut = getEl('zoomOutBtn');
+    
+    if (btnZoomIn) btnZoomIn.onclick = () => { zoomLevel *= 1.2; updateTransform(); };
+    if (btnZoomOut) btnZoomOut.onclick = () => { zoomLevel *= 0.8; updateTransform(); };
+
+    // Обработка касаний экрана
     svg.addEventListener('touchstart', e => {
-        if (e.target.closest(".person-node")) return; // Если тапнули на человека - не таскаем холст
+        if (e.target.closest(".person-node")) return; 
         
-        // Обрабатываем только один палец для перемещения
         if (e.touches.length === 1) {
+            // Один палец - таскаем холст
             isDragging = true;
             lastTouchX = e.touches[0].clientX;
             lastTouchY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+            // Два пальца - готовимся зумить
+            isDragging = false; 
+            // Вычисляем расстояние между двумя пальцами
+            initialPinchDistance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            initialZoom = zoomLevel;
         }
     }, { passive: false });
 
     svg.addEventListener('touchmove', e => {
-        if (!isDragging) return;
+        // Блокируем стандартный скролл страницы при возне с деревом
+        if (e.touches.length === 1 && isDragging || e.touches.length === 2) {
+            e.preventDefault(); 
+        }
         
-        if (e.touches.length === 1) {
-            e.preventDefault(); // Запрещаем браузеру скроллить саму страницу
-            
-            const dx = e.touches[0].clientX - lastTouchX;
-            const dy = e.touches[0].clientY - lastTouchY;
-            
-            translateX += dx;
-            translateY += dy;
+        if (isDragging && e.touches.length === 1) {
+            // Двигаем холст одним пальцем
+            translateX += e.touches[0].clientX - lastTouchX;
+            translateY += e.touches[0].clientY - lastTouchY;
             
             lastTouchX = e.touches[0].clientX;
             lastTouchY = e.touches[0].clientY;
             
             updateTransform();
+        } else if (e.touches.length === 2 && initialPinchDistance) {
+            // Зумим двумя пальцами
+            const currentDistance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            
+            const pinchRatio = currentDistance / initialPinchDistance;
+            zoomLevel = initialZoom * pinchRatio;
+            
+            // Ограничиваем зум, чтобы дерево не исчезло в пикселях
+            if (zoomLevel < 0.2) zoomLevel = 0.2;
+            if (zoomLevel > 3) zoomLevel = 3;
+            
+            updateTransform();
         }
     }, { passive: false });
 
-    svg.addEventListener('touchend', () => isDragging = false);
+    svg.addEventListener('touchend', e => {
+        if (e.touches.length < 2) initialPinchDistance = null; // Сброс зума
+        if (e.touches.length === 0) isDragging = false; // Сброс перемещения
+    });
 });

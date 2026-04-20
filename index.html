@@ -41,8 +41,9 @@
     </main>
 
     <aside id="personPanel" class="side-panel hidden">
-        <div class="avatar-circle">
-            <img id="panelAvatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+        <div class="drag-handle"></div> <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <img id="panelAvatar" class="avatar-big" src="">
+            <button onclick="document.getElementById('personPanel').classList.add('hidden')" class="glass-btn">✕</button>
         </div>
 
         <input

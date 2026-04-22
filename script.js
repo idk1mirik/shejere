@@ -17,6 +17,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const birthPicker = flatpickr("#fBirth", { dateFormat: "d.m.Y", locale: "ru", allowInput: true });
     const deathPicker = flatpickr("#fDeath", { dateFormat: "d.m.Y", locale: "ru", allowInput: true });
 
+    function closeAllUI() {
+        const panels = ["personPanel", "profileModal", "searchResults"];
+        panels.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add("hidden");
+        });
+    }
+
     // =========================================
     // 🔔 КАСТОМНЫЕ УВЕДОМЛЕНИЯ
     // =========================================
@@ -209,6 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 👤 ВЫБОР ЧЕЛОВЕКА
     // =========================================
     function selectPerson(id) {
+        closeAllUI();
         if (!id) return;
         graph.setFocus(id);
         const p = graph.getPerson(id);
@@ -427,6 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 🛠 МОДАЛКИ СОЗДАНИЯ РОДСТВЕННИКОВ
     // =========================================
     function openModal(title, action) {
+        closeAllUI();
         getEl("modalTitle").textContent = title;
         getEl("newPersonName").value = "";
         const list = getEl("existingList");
@@ -573,4 +583,6 @@ if (modalOverlay) {
         if (e.touches.length < 2) initialPinchDistance = null; // Сброс зума
         if (e.touches.length === 0) isDragging = false; // Сброс перемещения
     });
+
+    
 });

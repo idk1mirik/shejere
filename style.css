@@ -385,10 +385,32 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; transf
         padding: 15px !important;
     }
 
-    /* Модальные окна (создание предка) */
+    .modal-overlay {
+        align-items: flex-end !important; /* Прибиваем окно к самому низу */
+        padding: 0 !important; /* Убираем отступы по краям */
+        background: rgba(0,0,0,0.6) !important; /* Делаем фон чуть приятнее */
+    }
+
     .modal-card {
-        width: 90% !important;
-        margin: 0 auto;
-        border-radius: 20px !important;
+        width: 100vw !important; /* На всю ширину экрана */
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 25px 25px 0 0 !important; /* Скругляем только верхние углы */
+        padding: 30px 20px 50px 20px !important; /* Даем воздуху и отступ снизу */
+        background: var(--white);
+        transform: translateY(100%);
+        animation: slideUpModal 0.3s ease-out forwards;
+    }
+
+    /* Анимация выезда снизу */
+    @keyframes slideUpModal {
+        to { transform: translateY(0); }
+    }
+
+    /* Делаем инпуты и кнопки крупнее, чтобы было удобно попадать пальцем */
+    #profileModal .neomorph-input {
+        padding: 15px !important;
+        font-size: 16px !important;
+        border-radius: 15px !important;
     }
 }

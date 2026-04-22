@@ -583,6 +583,12 @@ if (modalOverlay) {
         if (e.touches.length < 2) initialPinchDistance = null; // Сброс зума
         if (e.touches.length === 0) isDragging = false; // Сброс перемещения
     });
-
+// Закрытие модального окна по клику на темный фон
+document.getElementById("profileModal").addEventListener("click", (e) => {
+    // Проверяем, что кликнули именно на фон, а не на само белое окно
+    if (e.target.id === "profileModal") {
+        closeAllUI(); // Вызываем твою функцию закрытия всего
+    }
+});
     
 });

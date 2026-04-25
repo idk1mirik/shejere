@@ -1,11 +1,211 @@
 document.addEventListener("DOMContentLoaded", () => {
     const STORAGE_KEY = "shedjere-family-tree-v1";
+    const SETTINGS_KEY = "shedjere-ui-settings-v1";
     const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
     const graph = new FamilyGraph();
     const scene = document.getElementById("scene");
     const svg = document.getElementById("viewport");
     const getEl = (id) => document.getElementById(id);
+
+    const themes = [
+        { name: "default", labelKey: "themeDefault", color: "#e6e9ef" },
+        { name: "dark", labelKey: "themeDark", color: "#121212" },
+        { name: "sunset", labelKey: "themeWarm", color: "#f4ecd8" },
+        { name: "forest", labelKey: "themeForest", color: "#e8f5e9" }
+    ];
+
+    const translations = {
+        ru: {
+            pageTitle: "Мое Шежере | Soft Heritage",
+            tagline: "Семейная память в живом дереве",
+            searchPlaceholder: "Найти человека...",
+            exportPng: "Скачать PNG",
+            createPerson: "Добавить человека",
+            personNamePlaceholder: "Имя Фамилия",
+            birthShort: "Рождение",
+            deathShort: "Смерть",
+            openProfile: "Открыть анкету",
+            addRelation: "Добавить родство",
+            parent: "Родитель",
+            spouse: "Пара",
+            child: "Ребенок",
+            photoHint: "Нажми на фото, чтобы загрузить новое",
+            profileTitle: "Информация о родственнике",
+            fullNameLabel: "ФИО / полное имя",
+            maidenNameLabel: "Девичья фамилия",
+            birthDateLabel: "Дата рождения",
+            deathDateLabel: "Дата смерти",
+            isAlive: "Жив(а)",
+            datePlaceholder: "дд.мм.гггг",
+            birthPlaceLabel: "Место рождения",
+            deathPlaceLabel: "Место смерти / погребения",
+            educationLabel: "Образование",
+            professionLabel: "Профессия",
+            livingPlaceLabel: "Место жительства",
+            burialLabel: "Информация о захоронении",
+            bioLabel: "Биография и интересные факты",
+            saveChanges: "Сохранить изменения",
+            newPersonTitle: "Новый человек",
+            orCreateNew: "или создай нового",
+            newPersonPlaceholder: "Введите имя...",
+            cancel: "Отмена",
+            create: "Создать",
+            founderTitle: "Основатель рода",
+            addParentTitle: "Добавить родителя",
+            addSpouseTitle: "Добавить супруга(у)",
+            addChildTitle: "Добавить ребенка",
+            saveError: "Не удалось сохранить данные. Возможно, фото слишком большое.",
+            parentLimit: "У этого человека уже указаны оба родителя.",
+            chooseSmallerPhoto: "Лучше выбрать фото до 750 КБ, иначе браузер может не сохранить дерево.",
+            enterName: "Введите имя.",
+            addFirstPerson: "Сначала добавь хотя бы одного человека.",
+            exportFail: "Не получилось экспортировать PNG.",
+            exporting: "Сохраняю...",
+            aliveShort: "Жив(а)",
+            noName: "Без имени",
+            themeDefault: "Светлая",
+            themeDark: "Темная",
+            themeWarm: "Теплая",
+            themeForest: "Лесная",
+            locale: "ru"
+        },
+        uz: {
+            pageTitle: "Mening Shejerem | Soft Heritage",
+            tagline: "Oila xotirasi jonli daraxtda",
+            searchPlaceholder: "Odamni qidirish...",
+            exportPng: "PNG yuklab olish",
+            createPerson: "Odam qo'shish",
+            personNamePlaceholder: "Ism Familiya",
+            birthShort: "Tug'ilgan",
+            deathShort: "Vafot",
+            openProfile: "Anketani ochish",
+            addRelation: "Qarindoshlik qo'shish",
+            parent: "Ota-ona",
+            spouse: "Juft",
+            child: "Farzand",
+            photoHint: "Yangi surat yuklash uchun fotoni bosing",
+            profileTitle: "Qarindosh haqida ma'lumot",
+            fullNameLabel: "F.I.Sh. / to'liq ism",
+            maidenNameLabel: "Qizlik familiyasi",
+            birthDateLabel: "Tug'ilgan sana",
+            deathDateLabel: "Vafot sanasi",
+            isAlive: "Tirik",
+            datePlaceholder: "kk.oo.yyyy",
+            birthPlaceLabel: "Tug'ilgan joyi",
+            deathPlaceLabel: "Vafot / dafn joyi",
+            educationLabel: "Ta'lim",
+            professionLabel: "Kasb",
+            livingPlaceLabel: "Yashash joyi",
+            burialLabel: "Dafn haqidagi ma'lumot",
+            bioLabel: "Tarjimai hol va qiziqarli faktlar",
+            saveChanges: "O'zgarishlarni saqlash",
+            newPersonTitle: "Yangi odam",
+            orCreateNew: "yoki yangisini yarating",
+            newPersonPlaceholder: "Ism kiriting...",
+            cancel: "Bekor qilish",
+            create: "Yaratish",
+            founderTitle: "Urug' asoschisi",
+            addParentTitle: "Ota-onani qo'shish",
+            addSpouseTitle: "Juftini qo'shish",
+            addChildTitle: "Farzand qo'shish",
+            saveError: "Ma'lumotni saqlab bo'lmadi. Surat juda katta bo'lishi mumkin.",
+            parentLimit: "Bu odam uchun ikkala ota-ona allaqachon ko'rsatilgan.",
+            chooseSmallerPhoto: "750 KB dan kichikroq surat tanlang, aks holda brauzer daraxtni saqlamasligi mumkin.",
+            enterName: "Iltimos, ism kiriting.",
+            addFirstPerson: "Avval kamida bitta odam qo'shing.",
+            exportFail: "PNG eksport qilib bo'lmadi.",
+            exporting: "Saqlanmoqda...",
+            aliveShort: "Tirik",
+            noName: "Nomsiz",
+            themeDefault: "Yorug'",
+            themeDark: "Tungi",
+            themeWarm: "Issiq",
+            themeForest: "Yashil",
+            locale: "uz"
+        },
+        en: {
+            pageTitle: "My Family Tree | Soft Heritage",
+            tagline: "Family memory inside a living tree",
+            searchPlaceholder: "Search for a person...",
+            exportPng: "Download PNG",
+            createPerson: "Add person",
+            personNamePlaceholder: "Name Surname",
+            birthShort: "Birth",
+            deathShort: "Death",
+            openProfile: "Open profile",
+            addRelation: "Add relation",
+            parent: "Parent",
+            spouse: "Spouse",
+            child: "Child",
+            photoHint: "Tap the photo to upload a new one",
+            profileTitle: "Relative information",
+            fullNameLabel: "Full name",
+            maidenNameLabel: "Maiden name",
+            birthDateLabel: "Birth date",
+            deathDateLabel: "Death date",
+            isAlive: "Alive",
+            datePlaceholder: "dd.mm.yyyy",
+            birthPlaceLabel: "Place of birth",
+            deathPlaceLabel: "Place of death / burial",
+            educationLabel: "Education",
+            professionLabel: "Profession",
+            livingPlaceLabel: "Place of living",
+            burialLabel: "Burial details",
+            bioLabel: "Biography and notable facts",
+            saveChanges: "Save changes",
+            newPersonTitle: "New person",
+            orCreateNew: "or create a new one",
+            newPersonPlaceholder: "Enter a name...",
+            cancel: "Cancel",
+            create: "Create",
+            founderTitle: "Family founder",
+            addParentTitle: "Add parent",
+            addSpouseTitle: "Add spouse",
+            addChildTitle: "Add child",
+            saveError: "Could not save the data. The photo may be too large.",
+            parentLimit: "This person already has both parents connected.",
+            chooseSmallerPhoto: "Use a photo smaller than 750 KB, otherwise the browser may fail to save the tree.",
+            enterName: "Please enter a name.",
+            addFirstPerson: "Add at least one person first.",
+            exportFail: "PNG export failed.",
+            exporting: "Exporting...",
+            aliveShort: "Alive",
+            noName: "No name",
+            themeDefault: "Light",
+            themeDark: "Dark",
+            themeWarm: "Warm",
+            themeForest: "Forest",
+            locale: "en"
+        }
+    };
+
+    const uzLocale = {
+        weekdays: {
+            shorthand: ["Yak", "Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"],
+            longhand: ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"]
+        },
+        months: {
+            shorthand: ["Yan", "Fev", "Mar", "Apr", "May", "Iyn", "Iyl", "Avg", "Sen", "Okt", "Noy", "Dek"],
+            longhand: ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"]
+        },
+        firstDayOfWeek: 1,
+        rangeSeparator: " - ",
+        weekAbbreviation: "Hafta",
+        scrollTitle: "O'zgartirish uchun aylantiring",
+        toggleTitle: "Almashtirish uchun bosing",
+        amPM: ["AM", "PM"],
+        yearAriaLabel: "Yil",
+        monthAriaLabel: "Oy",
+        hourAriaLabel: "Soat",
+        minuteAriaLabel: "Daqiqa"
+    };
+
+    const languageLocales = {
+        ru: () => (window.flatpickr && flatpickr.l10ns && flatpickr.l10ns.ru) ? flatpickr.l10ns.ru : "default",
+        uz: () => uzLocale,
+        en: () => "default"
+    };
 
     let translateX = window.innerWidth / 2;
     let translateY = window.innerHeight / 2;
@@ -20,35 +220,54 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastTouchY = 0;
     let initialPinchDistance = null;
     let initialZoom = 1;
+    let currentTheme = "default";
+    let currentLanguage = "ru";
+    let currentModalTitleKey = "newPersonTitle";
 
     const birthPicker = initDatePicker("#fBirth");
     const deathPicker = initDatePicker("#fDeath");
 
     loadGraph();
-    initThemePanel();
+    loadSettings();
+    initThemePanels();
+    initLanguageSwitcher();
     initSearch();
     initControls();
     initCamera();
     initProfileModal();
-
+    applySettings();
+    applyTranslations();
     render(true);
 
+    function t(key) {
+        return (translations[currentLanguage] && translations[currentLanguage][key]) || translations.ru[key] || key;
+    }
+
     function initDatePicker(selector) {
-        if (window.flatpickr) {
-            return flatpickr(selector, {
-                dateFormat: "d.m.Y",
-                locale: flatpickr.l10ns && flatpickr.l10ns.ru ? "ru" : "default",
-                allowInput: true
-            });
+        if (!window.flatpickr) {
+            return {
+                clear: () => {},
+                set: () => {},
+                open: () => {},
+                _input: document.querySelector(selector)
+            };
         }
-        return { clear: () => {}, _input: document.querySelector(selector) };
+
+        return flatpickr(selector, {
+            dateFormat: "d.m.Y",
+            allowInput: true,
+            disableMobile: true,
+            locale: languageLocales[currentLanguage](),
+            prevArrow: "<span class='flatpickr-nav-arrow'>‹</span>",
+            nextArrow: "<span class='flatpickr-nav-arrow'>›</span>"
+        });
     }
 
     function saveGraph() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(graph.toJSON()));
         } catch (error) {
-            showCustomAlert("Не удалось сохранить данные. Возможно, фото слишком большое.");
+            showCustomAlert(t("saveError"));
         }
     }
 
@@ -59,6 +278,29 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             localStorage.removeItem(STORAGE_KEY);
         }
+    }
+
+    function saveSettings() {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+            language: currentLanguage,
+            theme: currentTheme
+        }));
+    }
+
+    function loadSettings() {
+        try {
+            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+            if (settings.language && translations[settings.language]) currentLanguage = settings.language;
+            if (settings.theme && themes.some(theme => theme.name === settings.theme)) currentTheme = settings.theme;
+        } catch (error) {
+            localStorage.removeItem(SETTINGS_KEY);
+        }
+    }
+
+    function applySettings() {
+        setTheme(currentTheme, false);
+        updateLanguageButtons();
+        updateThemeButtons();
     }
 
     function closeAllUI() {
@@ -81,41 +323,115 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 2600);
     }
 
-    function initThemePanel() {
-        const toolbar = document.querySelector(".toolbar");
-        const exportBtn = getEl("exportBtn");
-        if (!toolbar || !exportBtn || document.querySelector(".theme-panel-header")) return;
+    function initThemePanels() {
+        renderThemePanel(getEl("themePanel"), false);
+        renderThemePanel(getEl("mobileThemePanel"), true);
+    }
 
-        const themePanel = document.createElement("div");
-        themePanel.className = "theme-panel-header";
-        const themes = [
-            { name: "default", label: "Светлая", color: "#e6e9ef" },
-            { name: "dark", label: "Темная", color: "#121212" },
-            { name: "sunset", label: "Теплая", color: "#f4ecd8" },
-            { name: "forest", label: "Лесная", color: "#e8f5e9" }
-        ];
-
-        themePanel.innerHTML = themes.map(theme => `
-            <button class="theme-tile" type="button" data-theme="${theme.name}" style="background-color:${theme.color}" title="${theme.label}"></button>
+    function renderThemePanel(container, compact) {
+        if (!container) return;
+        container.innerHTML = themes.map(theme => `
+            <button
+                class="theme-tile${compact ? " compact" : ""}"
+                type="button"
+                data-theme="${theme.name}"
+                style="background-color:${theme.color}"
+                title="${t(theme.labelKey)}"
+                aria-label="${t(theme.labelKey)}"
+            ></button>
         `).join("");
-        toolbar.insertBefore(themePanel, exportBtn);
 
-        themePanel.addEventListener("click", (event) => {
+        container.addEventListener("click", (event) => {
             const tile = event.target.closest(".theme-tile");
             if (!tile) return;
-            document.querySelectorAll(".theme-tile").forEach(item => item.classList.remove("active"));
-            tile.classList.add("active");
             setTheme(tile.dataset.theme);
         });
     }
 
-    function setTheme(themeName) {
+    function setTheme(themeName, persist = true) {
+        currentTheme = themeName;
         if (themeName === "default") {
             document.documentElement.removeAttribute("data-theme");
         } else {
             document.documentElement.setAttribute("data-theme", themeName);
         }
+        updateThemeButtons();
         render(false);
+        if (persist) saveSettings();
+    }
+
+    function updateThemeButtons() {
+        document.querySelectorAll(".theme-tile").forEach(tile => {
+            tile.classList.toggle("active", tile.dataset.theme === currentTheme);
+        });
+    }
+
+    function initLanguageSwitcher() {
+        const switcher = getEl("languageSwitcher");
+        if (!switcher) return;
+        switcher.addEventListener("click", (event) => {
+            const button = event.target.closest(".segment-btn");
+            if (!button) return;
+            setLanguage(button.dataset.lang);
+        });
+    }
+
+    function setLanguage(lang) {
+        if (!translations[lang]) return;
+        currentLanguage = lang;
+        document.documentElement.lang = lang;
+        applyTranslations();
+        updateDatePickerLocale();
+        updateLanguageButtons();
+        updateThemePanelsLabels();
+        saveSettings();
+    }
+
+    function updateThemePanelsLabels() {
+        document.querySelectorAll(".theme-tile").forEach(tile => {
+            const theme = themes.find(item => item.name === tile.dataset.theme);
+            if (!theme) return;
+            const label = t(theme.labelKey);
+            tile.title = label;
+            tile.setAttribute("aria-label", label);
+        });
+    }
+
+    function updateLanguageButtons() {
+        document.querySelectorAll("#languageSwitcher .segment-btn").forEach(button => {
+            button.classList.toggle("active", button.dataset.lang === currentLanguage);
+        });
+    }
+
+    function updateDatePickerLocale() {
+        const locale = languageLocales[currentLanguage]();
+        [birthPicker, deathPicker].forEach(picker => {
+            if (picker && typeof picker.set === "function") {
+                picker.set("locale", locale);
+            }
+        });
+    }
+
+    function applyTranslations() {
+        document.title = t("pageTitle");
+        document.querySelectorAll("[data-i18n]").forEach(node => {
+            node.textContent = t(node.dataset.i18n);
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(node => {
+            node.placeholder = t(node.dataset.i18nPlaceholder);
+        });
+        getEl("modalTitle").textContent = t(currentModalTitleKey);
+        getEl("closePersonPanel").setAttribute("aria-label", t("cancel"));
+        getEl("closeFullProfile").setAttribute("aria-label", t("cancel"));
+
+        const focusId = graph.getFocus();
+        if (focusId) {
+            const person = graph.getPerson(focusId);
+            if (person) {
+                getEl("quickBirth").value = person.birthDate || "—";
+                getEl("quickDeath").value = person.isAlive !== false && !person.deathDate ? t("aliveShort") : (person.deathDate || "—");
+            }
+        }
     }
 
     function initSearch() {
@@ -170,7 +486,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function initControls() {
         getEl("exportBtn").addEventListener("click", exportPng);
         getEl("createPersonBtn").addEventListener("click", () => {
-            openRelationModal("Основатель рода", id => {
+            currentModalTitleKey = "founderTitle";
+            openRelationModal(currentModalTitleKey, id => {
                 graph.setFocus(id);
                 saveGraph();
                 selectPerson(id, true);
@@ -180,6 +497,14 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.2));
         getEl("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel * 0.82));
         window.addEventListener("resize", () => render(false));
+
+        document.querySelectorAll("[data-date-trigger]").forEach(button => {
+            button.addEventListener("click", () => {
+                const target = button.dataset.dateTrigger;
+                if (target === "fBirth" && birthPicker && typeof birthPicker.open === "function") birthPicker.open();
+                if (target === "fDeath" && deathPicker && typeof deathPicker.open === "function") deathPicker.open();
+            });
+        });
     }
 
     function initCamera() {
@@ -272,7 +597,7 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("personNameInput").addEventListener("change", event => {
             const person = graph.getPerson(graph.getFocus());
             if (!person) return;
-            person.name = event.target.value.trim() || "Без имени";
+            person.name = event.target.value.trim() || t("noName");
             saveGraph();
             render(false);
         });
@@ -308,14 +633,15 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("panelAvatar").src = person.photo || DEFAULT_AVATAR;
         getEl("personNameInput").value = person.name || "";
         getEl("quickBirth").value = person.birthDate || "—";
-        getEl("quickDeath").value = person.isAlive !== false && !person.deathDate ? "Жив(а)" : (person.deathDate || "—");
+        getEl("quickDeath").value = person.isAlive !== false && !person.deathDate ? t("aliveShort") : (person.deathDate || "—");
 
         getEl("addParent").onclick = () => {
             if (person.parents.size >= 2) {
-                showCustomAlert("У этого человека уже указаны оба родителя.");
+                showCustomAlert(t("parentLimit"));
                 return;
             }
-            openRelationModal("Добавить родителя", relatedId => {
+            currentModalTitleKey = "addParentTitle";
+            openRelationModal(currentModalTitleKey, relatedId => {
                 if (graph.addParent(id, relatedId)) {
                     saveGraph();
                     render(true);
@@ -324,7 +650,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         getEl("addSpouse").onclick = () => {
-            openRelationModal("Добавить супруга(у)", relatedId => {
+            currentModalTitleKey = "addSpouseTitle";
+            openRelationModal(currentModalTitleKey, relatedId => {
                 if (graph.addSpouse(id, relatedId)) {
                     saveGraph();
                     render(true);
@@ -333,7 +660,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         getEl("addChild").onclick = () => {
-            openRelationModal("Добавить ребенка", relatedId => {
+            currentModalTitleKey = "addChildTitle";
+            openRelationModal(currentModalTitleKey, relatedId => {
                 if (graph.addParent(relatedId, id)) {
                     saveGraph();
                     render(true);
@@ -474,7 +802,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function shortenName(name) {
-        return (name || "Без имени").length > 20 ? `${name.slice(0, 19)}…` : name;
+        const source = name || t("noName");
+        return source.length > 20 ? `${source.slice(0, 19)}...` : source;
     }
 
     function openFullProfile() {
@@ -515,7 +844,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const file = event.target.files[0];
             if (!file) return;
             if (file.size > 750 * 1024) {
-                showCustomAlert("Лучше выбрать фото до 750 КБ, иначе браузер может не сохранить дерево.");
+                showCustomAlert(t("chooseSmallerPhoto"));
             }
             const reader = new FileReader();
             reader.onload = readerEvent => {
@@ -528,7 +857,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         getEl("saveProfileBtn").onclick = () => {
-            person.name = getEl("fName").value.trim() || "Без имени";
+            person.name = getEl("fName").value.trim() || t("noName");
             person.maidenName = getEl("fMaidenName").value.trim();
             person.birthDate = getEl("fBirth").value.trim();
             person.isAlive = aliveToggle.checked;
@@ -555,9 +884,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (deathPicker && deathPicker._input) deathPicker._input.disabled = isAlive;
     }
 
-    function openRelationModal(title, action, currentId = null) {
+    function openRelationModal(titleKey, action, currentId = null) {
         getEl("personPanel").classList.add("hidden");
-        getEl("modalTitle").textContent = title;
+        currentModalTitleKey = titleKey;
+        getEl("modalTitle").textContent = t(titleKey);
         getEl("newPersonName").value = "";
 
         const list = getEl("existingList");
@@ -579,7 +909,7 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("submitModalBtn").onclick = () => {
             const name = getEl("newPersonName").value.trim();
             if (!name) {
-                showCustomAlert("Введите имя.");
+                showCustomAlert(t("enterName"));
                 return;
             }
             const id = graph.createPerson({ name });
@@ -598,13 +928,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function exportPng() {
         if (!graph.people.size) {
-            showCustomAlert("Сначала добавь хотя бы одного человека.");
+            showCustomAlert(t("addFirstPerson"));
             return;
         }
 
         const btn = getEl("exportBtn");
-        const originalText = btn.textContent;
-        btn.textContent = "Сохраняю...";
+        const originalText = t("exportPng");
+        btn.textContent = t("exporting");
         btn.disabled = true;
 
         try {
@@ -644,13 +974,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.disabled = false;
             };
             image.onerror = () => {
-                showCustomAlert("Не получилось экспортировать PNG.");
+                showCustomAlert(t("exportFail"));
                 btn.textContent = originalText;
                 btn.disabled = false;
             };
             image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
         } catch (error) {
-            showCustomAlert("Не получилось экспортировать PNG.");
+            showCustomAlert(t("exportFail"));
             btn.textContent = originalText;
             btn.disabled = false;
         }

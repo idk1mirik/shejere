@@ -14,18 +14,32 @@
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/2.8.0/dom-to-image-more.min.js"></script>
 
+    <div class="ambient-gradient ambient-left"></div>
+    <div class="ambient-gradient ambient-right"></div>
+
     <div class="ui-wrapper">
         <header class="top-bar">
-            <h1 class="logo">🌳 SHEDJERE</h1>
+            <div class="brand-block">
+                <h1 class="logo">SHEDJERE</h1>
+                <p class="tagline" data-i18n="tagline">Семейная память в живом дереве</p>
+            </div>
 
             <div class="search-container">
-                <input type="text" id="treeSearch" class="neomorph-input" placeholder="Найти человека...">
+                <input type="text" id="treeSearch" class="neomorph-input" data-i18n-placeholder="searchPlaceholder" placeholder="Найти человека...">
                 <div id="searchResults" class="search-results hidden"></div>
             </div>
 
             <div class="toolbar">
-                <button id="exportBtn" class="glass-btn">Скачать PNG</button>
-                <button id="createPersonBtn" class="glass-btn primary">Добавить человека</button>
+                <div id="languageSwitcher" class="segment-control" aria-label="Language">
+                    <button class="segment-btn active" type="button" data-lang="ru">RU</button>
+                    <button class="segment-btn" type="button" data-lang="uz">UZ</button>
+                    <button class="segment-btn" type="button" data-lang="en">EN</button>
+                </div>
+
+                <div id="themePanel" class="theme-panel-header" aria-label="Theme"></div>
+
+                <button id="exportBtn" class="glass-btn" type="button" data-i18n="exportPng">Скачать PNG</button>
+                <button id="createPersonBtn" class="glass-btn primary" type="button" data-i18n="createPerson">Добавить человека</button>
             </div>
         </header>
     </div>
@@ -36,9 +50,13 @@
         </svg>
     </main>
 
-    <div class="mobile-zoom-controls" aria-label="Масштаб">
-        <button id="zoomInBtn" class="glass-btn" type="button">+</button>
-        <button id="zoomOutBtn" class="glass-btn" type="button">-</button>
+    <div class="floating-mobile-tools">
+        <div id="mobileThemePanel" class="mobile-theme-panel" aria-label="Theme"></div>
+
+        <div class="mobile-zoom-controls" aria-label="Масштаб">
+            <button id="zoomInBtn" class="glass-btn" type="button">+</button>
+            <button id="zoomOutBtn" class="glass-btn" type="button">-</button>
+        </div>
     </div>
 
     <aside id="personPanel" class="side-panel hidden">
@@ -52,23 +70,24 @@
             type="text"
             id="personNameInput"
             class="neomorph-input main-name"
+            data-i18n-placeholder="personNamePlaceholder"
             placeholder="Имя Фамилия"
         >
 
         <div class="quick-dates">
-            <input type="text" id="quickBirth" class="neomorph-input small" placeholder="Рождение" readonly>
+            <input type="text" id="quickBirth" class="neomorph-input small" data-i18n-placeholder="birthShort" placeholder="Рождение" readonly>
             <span class="dash">—</span>
-            <input type="text" id="quickDeath" class="neomorph-input small" placeholder="Смерть" readonly>
+            <input type="text" id="quickDeath" class="neomorph-input small" data-i18n-placeholder="deathShort" placeholder="Смерть" readonly>
         </div>
 
-        <button id="openFullProfileBtn" class="glass-btn wide" type="button">Открыть анкету</button>
+        <button id="openFullProfileBtn" class="glass-btn wide" type="button" data-i18n="openProfile">Открыть анкету</button>
 
         <div class="rel-section">
-            <label>Добавить родство</label>
+            <label data-i18n="addRelation">Добавить родство</label>
             <div class="rel-grid">
-                <button id="addParent" class="rel-btn" type="button"><span>👵</span>Родитель</button>
-                <button id="addSpouse" class="rel-btn" type="button"><span>💍</span>Пара</button>
-                <button id="addChild" class="rel-btn" type="button"><span>👶</span>Ребенок</button>
+                <button id="addParent" class="rel-btn" type="button"><span>👵</span><span data-i18n="parent">Родитель</span></button>
+                <button id="addSpouse" class="rel-btn" type="button"><span>💍</span><span data-i18n="spouse">Пара</span></button>
+                <button id="addChild" class="rel-btn" type="button"><span>👶</span><span data-i18n="child">Ребенок</span></button>
             </div>
         </div>
     </aside>
@@ -86,77 +105,83 @@
                             <input type="file" id="uploadPhoto" hidden accept="image/*">
                         </label>
                     </div>
-                    <p class="photo-hint">Нажми на фото, чтобы загрузить новое</p>
+                    <p class="photo-hint" data-i18n="photoHint">Нажми на фото, чтобы загрузить новое</p>
                 </div>
 
                 <div class="profile-info-side">
-                    <h2 class="profile-title">Информация о родственнике</h2>
+                    <h2 class="profile-title" data-i18n="profileTitle">Информация о родственнике</h2>
 
                     <div class="flex-row">
                         <div class="flex-col flex-wide">
-                            <label class="input-label">ФИО / полное имя</label>
+                            <label class="input-label" data-i18n="fullNameLabel">ФИО / полное имя</label>
                             <input type="text" id="fName" class="neomorph-input">
                         </div>
                         <div class="flex-col">
-                            <label class="input-label">Девичья фамилия</label>
+                            <label class="input-label" data-i18n="maidenNameLabel">Девичья фамилия</label>
                             <input type="text" id="fMaidenName" class="neomorph-input">
                         </div>
                     </div>
 
                     <div class="flex-row">
                         <div class="flex-col">
-                            <label class="input-label">Дата рождения</label>
-                            <input type="text" id="fBirth" class="neomorph-input" placeholder="дд.мм.гггг">
+                            <label class="input-label" data-i18n="birthDateLabel">Дата рождения</label>
+                            <div class="date-field">
+                                <input type="text" id="fBirth" class="neomorph-input" data-i18n-placeholder="datePlaceholder" placeholder="дд.мм.гггг">
+                                <button class="date-icon-btn" type="button" data-date-trigger="fBirth" aria-label="Open calendar">▦</button>
+                            </div>
                         </div>
                         <div class="flex-col">
                             <div class="death-label-row">
-                                <label class="input-label">Дата смерти</label>
-                                <label class="alive-check"><input type="checkbox" id="fIsAlive"> Жив(а)</label>
+                                <label class="input-label" data-i18n="deathDateLabel">Дата смерти</label>
+                                <label class="alive-check"><input type="checkbox" id="fIsAlive"> <span data-i18n="isAlive">Жив(а)</span></label>
                             </div>
-                            <input type="text" id="fDeath" class="neomorph-input" placeholder="дд.мм.гггг">
+                            <div class="date-field">
+                                <input type="text" id="fDeath" class="neomorph-input" data-i18n-placeholder="datePlaceholder" placeholder="дд.мм.гггг">
+                                <button class="date-icon-btn" type="button" data-date-trigger="fDeath" aria-label="Open calendar">▦</button>
+                            </div>
                         </div>
                     </div>
 
                     <div class="flex-row">
                         <div class="flex-col">
-                            <label class="input-label">Место рождения</label>
+                            <label class="input-label" data-i18n="birthPlaceLabel">Место рождения</label>
                             <input type="text" id="fBirthPlace" class="neomorph-input">
                         </div>
                         <div class="flex-col">
-                            <label class="input-label">Место смерти / погребения</label>
+                            <label class="input-label" data-i18n="deathPlaceLabel">Место смерти / погребения</label>
                             <input type="text" id="fDeathPlace" class="neomorph-input">
                         </div>
                     </div>
 
                     <div class="flex-row">
                         <div class="flex-col">
-                            <label class="input-label">Образование</label>
+                            <label class="input-label" data-i18n="educationLabel">Образование</label>
                             <input type="text" id="fEdu" class="neomorph-input">
                         </div>
                         <div class="flex-col">
-                            <label class="input-label">Профессия</label>
+                            <label class="input-label" data-i18n="professionLabel">Профессия</label>
                             <input type="text" id="fProf" class="neomorph-input">
                         </div>
                     </div>
 
                     <div class="flex-row">
                         <div class="flex-col">
-                            <label class="input-label">Место жительства</label>
+                            <label class="input-label" data-i18n="livingPlaceLabel">Место жительства</label>
                             <input type="text" id="fLiving" class="neomorph-input">
                         </div>
                         <div class="flex-col">
-                            <label class="input-label">Информация о захоронении</label>
+                            <label class="input-label" data-i18n="burialLabel">Информация о захоронении</label>
                             <input type="text" id="fBurial" class="neomorph-input">
                         </div>
                     </div>
 
                     <div class="flex-col">
-                        <label class="input-label">Биография и интересные факты</label>
+                        <label class="input-label" data-i18n="bioLabel">Биография и интересные факты</label>
                         <textarea id="fBio" class="neomorph-input bio-input"></textarea>
                     </div>
 
                     <div class="profile-actions">
-                        <button id="saveProfileBtn" class="glass-btn primary" type="button">Сохранить изменения</button>
+                        <button id="saveProfileBtn" class="glass-btn primary" type="button" data-i18n="saveChanges">Сохранить изменения</button>
                     </div>
                 </div>
             </div>
@@ -165,13 +190,13 @@
 
     <div id="profileModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <h3 id="modalTitle">Новый человек</h3>
+            <h3 id="modalTitle" data-i18n="newPersonTitle">Новый человек</h3>
             <div id="existingList" class="existing-list"></div>
-            <div class="modal-hint">или создай нового</div>
-            <input type="text" id="newPersonName" class="neomorph-input" placeholder="Введите имя...">
+            <div class="modal-hint" data-i18n="orCreateNew">или создай нового</div>
+            <input type="text" id="newPersonName" class="neomorph-input" data-i18n-placeholder="newPersonPlaceholder" placeholder="Введите имя...">
             <div class="modal-actions">
-                <button id="closeModalBtn" class="glass-btn" type="button">Отмена</button>
-                <button id="submitModalBtn" class="glass-btn primary" type="button">Создать</button>
+                <button id="closeModalBtn" class="glass-btn" type="button" data-i18n="cancel">Отмена</button>
+                <button id="submitModalBtn" class="glass-btn primary" type="button" data-i18n="create">Создать</button>
             </div>
         </div>
     </div>

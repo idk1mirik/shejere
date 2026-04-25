@@ -543,10 +543,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function initLanguageSwitcher() {
-        getEl("languageSwitcher").addEventListener("click", (event) => {
-            const button = event.target.closest(".segment-btn");
-            if (!button) return;
-            setLanguage(button.dataset.lang);
+        document.querySelectorAll(".segment-control").forEach((switcher) => {
+            switcher.addEventListener("click", (event) => {
+                const button = event.target.closest(".segment-btn[data-lang]");
+                if (!button) return;
+                setLanguage(button.dataset.lang);
+            });
         });
     }
 
@@ -578,7 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateLanguageButtons() {
-        document.querySelectorAll("#languageSwitcher .segment-btn").forEach((button) => {
+        document.querySelectorAll(".segment-btn[data-lang]").forEach((button) => {
             button.classList.toggle("active", button.dataset.lang === state.language);
         });
     }
@@ -712,34 +714,52 @@ document.addEventListener("DOMContentLoaded", () => {
         const treeSearch = getEl("treeSearch");
         const searchResults = getEl("searchResults");
 
-        treeSearch.addEventListener("input", () => {
-            const query = treeSearch.value.toLowerCase().trim();
+        function renderMatches() {
+            const query = normalizeSearchText(treeSearch.value);
             searchResults.innerHTML = "";
 
             if (!query) {
                 searchResults.classList.add("hidden");
-                return;
+                return [];
             }
 
-            const matches = Array.from(graph.people.entries()).filter(([, person]) =>
-                (person.name || "").toLowerCase().includes(query)
-            );
+            const matches = Array.from(graph.people.entries()).filter(([, person]) => {
+                const haystack = [
+                    person.name,
+                    person.maidenName,
+                    person.birthPlace,
+                    person.livingPlaces,
+                    person.bio
+                ].filter(Boolean).map(normalizeSearchText).join(" ");
+                return haystack.includes(query);
+            });
 
             if (!matches.length) {
                 searchResults.classList.add("hidden");
-                return;
+                return [];
             }
 
             matches.slice(0, 10).forEach(([id, person]) => {
                 const item = document.createElement("button");
                 item.type = "button";
                 item.className = "search-item";
-                item.textContent = person.name;
+                item.textContent = person.name || t("noName");
                 item.dataset.id = id;
                 searchResults.appendChild(item);
             });
 
             searchResults.classList.remove("hidden");
+            return matches;
+        }
+
+        treeSearch.addEventListener("input", renderMatches);
+        treeSearch.addEventListener("focus", renderMatches);
+        treeSearch.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+            const firstMatch = searchResults.querySelector(".search-item");
+            if (!firstMatch) return;
+            event.preventDefault();
+            firstMatch.click();
         });
 
         searchResults.addEventListener("click", (event) => {
@@ -747,12 +767,21 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!item) return;
             treeSearch.value = "";
             searchResults.classList.add("hidden");
+            if (window.innerWidth < 768 && state.mode === "viewer") setMobileTreeFocus(true);
             selectPerson(item.dataset.id, true);
         });
 
         window.addEventListener("click", (event) => {
             if (!event.target.closest(".search-container")) searchResults.classList.add("hidden");
         });
+    }
+
+    function normalizeSearchText(value) {
+        return String(value || "")
+            .toLowerCase()
+            .normalize("NFKD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim();
     }
 
     function initControls() {
@@ -969,6 +998,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateModeUi() {
         document.body.classList.toggle("viewer-mode", state.mode === "viewer");
+        document.body.classList.toggle("admin-mode", state.mode === "admin");
         const modeBadge = getEl("modeBadge");
         const panelModePill = getEl("panelModePill");
         const modeKey = isAdminMode() ? "adminMode" : "viewerMode";

@@ -965,6 +965,11 @@ textarea:disabled {
     pointer-events: none;
 }
 
+.mobile-viewer-actions,
+.mobile-back-to-menu {
+    display: none;
+}
+
 .mobile-theme-panel,
 .mobile-zoom-controls {
     display: none;
@@ -1058,6 +1063,31 @@ textarea:disabled {
     line-height: 1.65;
 }
 
+.guide-card {
+    width: min(480px, 96vw);
+}
+
+.guide-copy {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.guide-points {
+    display: grid;
+    gap: 10px;
+}
+
+.guide-point {
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--card-strong), transparent 8%);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
 .viewer-only {
     display: none;
 }
@@ -1068,6 +1098,11 @@ body.viewer-mode .admin-only {
 
 body.viewer-mode .viewer-only {
     display: inline-flex;
+}
+
+body.viewer-mode .mobile-viewer-actions.viewer-only,
+body.viewer-mode .mobile-back-to-menu.viewer-only {
+    display: none;
 }
 
 body.viewer-mode .main-name,
@@ -1411,6 +1446,70 @@ span.flatpickr-weekday {
         bottom: calc(14px + env(safe-area-inset-bottom));
     }
 
+    .mobile-viewer-actions {
+        position: fixed;
+        left: 12px;
+        right: 72px;
+        bottom: calc(14px + env(safe-area-inset-bottom));
+        z-index: 129;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        pointer-events: none;
+    }
+
+    body.viewer-mode .mobile-viewer-actions.viewer-only {
+        display: grid;
+    }
+
+    body.viewer-mode .mobile-back-to-menu.viewer-only {
+        display: block;
+    }
+
+    .mobile-viewer-actions .glass-btn {
+        min-height: 46px;
+        padding: 10px 12px;
+        pointer-events: auto;
+    }
+
+    .mobile-back-to-menu {
+        position: fixed;
+        top: calc(10px + env(safe-area-inset-top));
+        left: 10px;
+        z-index: 140;
+    }
+
+    .mobile-back-to-menu .glass-btn {
+        min-height: 40px;
+        padding: 9px 14px;
+    }
+
+    body.mobile-tree-focus .ui-shell {
+        transform: translateY(calc(-1 * var(--top-ui-height) - 18px));
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.28s ease, opacity 0.24s ease;
+    }
+
+    body.mobile-tree-focus .canvas-area {
+        inset: 0;
+    }
+
+    body.mobile-tree-focus #viewport {
+        height: 100dvh;
+    }
+
+    body.mobile-tree-focus .mobile-viewer-actions {
+        transform: translateY(120%);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.24s ease, opacity 0.2s ease;
+    }
+
+    body.mobile-tree-focus .empty-state {
+        inset: 76px 12px 34px;
+    }
+
     .theme-tile {
         width: 34px;
         height: 34px;
@@ -1443,6 +1542,11 @@ span.flatpickr-weekday {
     .access-actions {
         display: grid;
         grid-template-columns: 1fr;
+    }
+
+    .guide-card {
+        width: 100vw;
+        border-radius: 28px 28px 0 0;
     }
 
     .access-actions .glass-btn {

@@ -114,6 +114,15 @@
         </div>
     </div>
 
+    <div class="mobile-viewer-actions viewer-only">
+        <button id="focusTreeMobileBtn" class="glass-btn accent-fill" type="button" data-i18n="openTreeMode">К дереву</button>
+        <button id="openGuideBtn" class="glass-btn" type="button" data-i18n="howItWorks">Как это работает</button>
+    </div>
+
+    <div id="mobileBackToMenu" class="mobile-back-to-menu hidden viewer-only">
+        <button id="backToMenuBtn" class="glass-btn" type="button" data-i18n="backToMenu">Меню</button>
+    </div>
+
     <aside id="personPanel" class="side-panel hidden reveal reveal-right">
         <div class="drag-handle"></div>
         <div class="panel-header">
@@ -263,6 +272,21 @@
             <div class="modal-actions">
                 <button id="closeModalBtn" class="glass-btn" type="button" data-i18n="cancel">Отмена</button>
                 <button id="submitModalBtn" class="glass-btn primary" type="button" data-i18n="create">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewerGuideModal" class="modal-overlay hidden">
+        <div class="modal-card guide-card reveal reveal-up">
+            <h3 data-i18n="viewerGuideTitle">Как смотреть дерево</h3>
+            <p class="guide-copy" data-i18n="viewerGuideText">Здесь доступен спокойный режим просмотра для родственников без редактирования.</p>
+            <div class="guide-points">
+                <div class="guide-point" data-i18n="viewerGuidePoint1">Нажмите на карточку человека, чтобы открыть профиль.</div>
+                <div class="guide-point" data-i18n="viewerGuidePoint2">Кнопка «К дереву» на телефоне скрывает верхнюю панель и оставляет чистый просмотр.</div>
+                <div class="guide-point" data-i18n="viewerGuidePoint3">Можно искать людей, менять язык, тему и масштаб без риска что-то испортить.</div>
+            </div>
+            <div class="modal-actions">
+                <button id="closeGuideBtn" class="glass-btn accent-fill" type="button" data-i18n="viewerGuideCta">Понятно</button>
             </div>
         </div>
     </div>

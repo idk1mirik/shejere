@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const STORAGE_KEY = "shedjere-family-tree-v2";
     const SETTINGS_KEY = "shedjere-ui-settings-v2";
     const SESSION_MODE_KEY = "shedjere-session-mode";
+    const VIEWER_GUIDE_KEY = "shedjere-viewer-guide-seen-v1";
     const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
     const ACCESS_CODES = {
         admin: "mir67",
@@ -114,7 +115,16 @@ document.addEventListener("DOMContentLoaded", () => {
             bornLabel: "Родился(ась)",
             diedLabel: "Ушел(а)",
             roleAdmin: "ADMIN",
-            roleViewer: "VIEWER"
+            roleViewer: "VIEWER",
+            openTreeMode: "К дереву",
+            howItWorks: "Как это работает",
+            backToMenu: "Меню",
+            viewerGuideTitle: "Как смотреть дерево",
+            viewerGuideText: "Здесь открыт безопасный режим просмотра для родственников без редактирования.",
+            viewerGuidePoint1: "Нажмите на карточку человека, чтобы открыть профиль и историю.",
+            viewerGuidePoint2: "Кнопка «К дереву» на телефоне прячет верхнюю панель и оставляет чистый просмотр.",
+            viewerGuidePoint3: "Можно искать людей, менять язык, тему и масштаб, не боясь что-то испортить.",
+            viewerGuideCta: "Понятно"
         },
         uz: {
             pageTitle: "Mening Shejerem | Soft Heritage",
@@ -209,7 +219,16 @@ document.addEventListener("DOMContentLoaded", () => {
             bornLabel: "Tug'ilgan",
             diedLabel: "Vafot etgan",
             roleAdmin: "ADMIN",
-            roleViewer: "VIEWER"
+            roleViewer: "VIEWER",
+            openTreeMode: "Daraxtga",
+            howItWorks: "Qanday ishlaydi",
+            backToMenu: "Menyu",
+            viewerGuideTitle: "Daraxtni qanday ko'rish kerak",
+            viewerGuideText: "Bu yerda qarindoshlar uchun tahrirsiz xavfsiz ko'rish rejimi ochilgan.",
+            viewerGuidePoint1: "Kartochkani bosing, profil va hikoyani ochasiz.",
+            viewerGuidePoint2: "Telefonda «Daraxtga» tugmasi yuqori panelni yashirib, toza ko'rinish qoldiradi.",
+            viewerGuidePoint3: "Odamlarni qidirish, tilni, mavzuni va masshtabni xavfsiz o'zgartirish mumkin.",
+            viewerGuideCta: "Tushunarli"
         },
         en: {
             pageTitle: "My Family Tree | Soft Heritage",
@@ -304,7 +323,16 @@ document.addEventListener("DOMContentLoaded", () => {
             bornLabel: "Born",
             diedLabel: "Passed",
             roleAdmin: "ADMIN",
-            roleViewer: "VIEWER"
+            roleViewer: "VIEWER",
+            openTreeMode: "To tree",
+            howItWorks: "How it works",
+            backToMenu: "Menu",
+            viewerGuideTitle: "How to browse the tree",
+            viewerGuideText: "This is a safe viewing mode for relatives without editing access.",
+            viewerGuidePoint1: "Tap a person card to open the profile and story.",
+            viewerGuidePoint2: "On phones, the “To tree” button hides the top panel for a cleaner view.",
+            viewerGuidePoint3: "You can search people, change language, theme and zoom without risking any edits.",
+            viewerGuideCta: "Got it"
         }
     };
 
@@ -639,6 +667,37 @@ document.addEventListener("DOMContentLoaded", () => {
         input.value = "";
         showCustomAlert(isAdminMode() ? t("accessAdminReady") : t("accessViewerReady"));
         updateFocusPanel();
+        if (finalMode === "viewer") {
+            maybeOpenViewerGuide();
+        } else {
+            closeViewerGuide();
+            setMobileTreeFocus(false);
+        }
+    }
+
+    function maybeOpenViewerGuide() {
+        if (localStorage.getItem(VIEWER_GUIDE_KEY) === "seen") return;
+        openViewerGuide(false);
+    }
+
+    function openViewerGuide(force) {
+        if (state.mode !== "viewer") return;
+        getEl("viewerGuideModal").classList.remove("hidden");
+        if (!force) localStorage.setItem(VIEWER_GUIDE_KEY, "seen");
+    }
+
+    function closeViewerGuide() {
+        const modal = getEl("viewerGuideModal");
+        if (modal) modal.classList.add("hidden");
+        localStorage.setItem(VIEWER_GUIDE_KEY, "seen");
+    }
+
+    function setMobileTreeFocus(enabled) {
+        if (window.innerWidth > 768) return;
+        document.body.classList.toggle("mobile-tree-focus", enabled);
+        getEl("mobileBackToMenu").classList.toggle("hidden", !enabled || state.mode !== "viewer");
+        updateMobileViewportMetrics();
+        render(false);
     }
 
     function updateAccessModeButtons() {
@@ -718,8 +777,20 @@ document.addEventListener("DOMContentLoaded", () => {
             state.pendingMode = "viewer";
             updateModeUi();
             updateAccessModeButtons();
+            setMobileTreeFocus(false);
             getEl("accessGate").classList.remove("hidden");
             getEl("accessCodeInput").focus();
+        });
+
+        getEl("focusTreeMobileBtn").addEventListener("click", () => {
+            setMobileTreeFocus(true);
+            centerCurrentFocus();
+        });
+        getEl("backToMenuBtn").addEventListener("click", () => setMobileTreeFocus(false));
+        getEl("openGuideBtn").addEventListener("click", () => openViewerGuide(true));
+        getEl("closeGuideBtn").addEventListener("click", closeViewerGuide);
+        getEl("viewerGuideModal").addEventListener("click", (event) => {
+            if (event.target.id === "viewerGuideModal") closeViewerGuide();
         });
 
         document.querySelectorAll("[data-date-trigger]").forEach((button) => {
@@ -736,8 +807,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateMobileViewportMetrics() {
         const topBar = document.querySelector(".top-bar");
-        const topBarHeight = topBar ? Math.ceil(topBar.getBoundingClientRect().height) : 0;
+        const topBarHeight = document.body.classList.contains("mobile-tree-focus")
+            ? 0
+            : (topBar ? Math.ceil(topBar.getBoundingClientRect().height) : 0);
         document.documentElement.style.setProperty("--top-ui-height", `${topBarHeight}px`);
+        if (window.innerWidth > 768 && document.body.classList.contains("mobile-tree-focus")) {
+            document.body.classList.remove("mobile-tree-focus");
+            getEl("mobileBackToMenu").classList.add("hidden");
+        }
     }
 
     function guardAdminAction() {
@@ -906,6 +983,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const viewerCloseBtn = getEl("closeProfileViewerBtn");
         viewerCloseBtn.classList.toggle("hidden", isAdminMode());
+        getEl("mobileBackToMenu").classList.toggle("hidden", !document.body.classList.contains("mobile-tree-focus") || state.mode !== "viewer");
         updateReadonlyFields();
     }
 

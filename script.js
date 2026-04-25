@@ -2,63 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const STORAGE_KEY = "shedjere-family-tree-v1";
     const SETTINGS_KEY = "shedjere-ui-settings-v1";
     const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-    const DEMO_STORIES = [
-        {
-            id: "story-1",
-            personId: null,
-            branch: "Yunusov",
-            date: "1958",
-            title: {
-                ru: "Первый семейный дом",
-                uz: "Birinchi oilaviy uy",
-                en: "The first family home"
-            },
-            body: {
-                ru: "Во дворе собирались сразу три поколения. Здесь начинались праздники, семейные советы и большая часть детских воспоминаний.",
-                uz: "Hovlida uch avlod birga yig'ilardi. Bayramlar, oilaviy suhbatlar va bolalik xotiralari shu yerdan boshlangan.",
-                en: "Three generations gathered in this courtyard. Celebrations, family advice and many childhood memories started here."
-            },
-            tags: ["Дом", "Память", "Традиция"],
-            image: "https://images.unsplash.com/photo-1518732714860-b62714ce0c59?auto=format&fit=crop&w=900&q=80"
-        },
-        {
-            id: "story-2",
-            personId: null,
-            branch: "Karimova",
-            date: "1986",
-            title: {
-                ru: "Свадьба, о которой до сих пор вспоминают",
-                uz: "Hali ham eslanadigan to'y",
-                en: "The wedding everyone still remembers"
-            },
-            body: {
-                ru: "Тот день помнят по музыке, шумному двору и длинному столу, за которым впервые познакомились две большие ветви рода.",
-                uz: "O'sha kun musiqa, gavjum hovli va ikki katta urug' birinchi marta tanishgan uzun dasturxon bilan esda qolgan.",
-                en: "That day is remembered for the music, the crowded courtyard and the long table where two large branches of the family first met."
-            },
-            tags: ["Свадьба", "Фото", "Семья"],
-            image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80"
-        },
-        {
-            id: "story-3",
-            personId: null,
-            branch: "Rakhimov",
-            date: "2004",
-            title: {
-                ru: "Переезд, который открыл новую главу",
-                uz: "Yangi bobni ochgan ko'chish",
-                en: "The move that opened a new chapter"
-            },
-            body: {
-                ru: "С переездом появились новые маршруты, новые соседи и новая семейная привычка собираться по выходным уже в другом районе.",
-                uz: "Ko'chish bilan yangi yo'llar, yangi qo'shnilar va dam olish kunlari boshqa hududda yig'ilish odati paydo bo'ldi.",
-                en: "The move brought new routes, new neighbours and a new weekend ritual of gathering in another part of the city."
-            },
-            tags: ["Переезд", "Город", "Новый этап"],
-            image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80"
-        }
-    ];
-
     const graph = new FamilyGraph();
     const scene = document.getElementById("scene");
     const svg = document.getElementById("viewport");
@@ -166,6 +109,10 @@ document.addEventListener("DOMContentLoaded", () => {
             statusBadgePast: "Архив",
             yearsBadge: "Годы",
             storiesEmpty: "Для этой ветки пока нет истории. Здесь будет красиво смотреться первый семейный эпизод.",
+            timelineEmpty: "Таймлайн появится, когда у родственников будут заполнены даты и истории.",
+            emptyKicker: "Family archive",
+            emptyTitle: "Здесь появится ваше родословное дерево",
+            emptyText: "Начните с одного человека, а потом спокойно добавляйте родителей, супругов, детей и семейные истории.",
             familyBookKicker: "Family book",
             exportPdf: "Экспорт в PDF",
             bookIntroTitle: "Книга рода",
@@ -265,6 +212,10 @@ document.addEventListener("DOMContentLoaded", () => {
             statusBadgePast: "Arxiv",
             yearsBadge: "Yillar",
             storiesEmpty: "Bu tarmoq uchun hali hikoya yo'q. Bu yerda birinchi oilaviy epizod juda yaxshi ko'rinadi.",
+            timelineEmpty: "Taymlayn qarindoshlar uchun sana va hikoyalar kiritilganda paydo bo'ladi.",
+            emptyKicker: "Family archive",
+            emptyTitle: "Bu yerda sizning nasab daraxtingiz paydo bo'ladi",
+            emptyText: "Avval bitta odam qo'shing, keyin asta-sekin ota-onalar, juftlar, farzandlar va oilaviy hikoyalarni to'ldiring.",
             familyBookKicker: "Family book",
             exportPdf: "PDF eksport",
             bookIntroTitle: "Nasab kitobi",
@@ -364,6 +315,10 @@ document.addEventListener("DOMContentLoaded", () => {
             statusBadgePast: "Archive",
             yearsBadge: "Years",
             storiesEmpty: "There is no story for this branch yet. The first family memory will look great here.",
+            timelineEmpty: "The timeline will appear once real dates and family stories are filled in.",
+            emptyKicker: "Family archive",
+            emptyTitle: "Your family tree will appear here",
+            emptyText: "Start with one person, then calmly add parents, spouses, children and family stories.",
             familyBookKicker: "Family book",
             exportPdf: "Export PDF",
             bookIntroTitle: "Family book",
@@ -429,7 +384,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const deathPicker = initDatePicker("#fDeath");
 
     loadGraph();
-    seedDemoDataIfNeeded();
     loadSettings();
     initThemePanels();
     initLanguageSwitcher();
@@ -447,6 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderStories();
     renderTimeline();
     renderBook();
+    updateEmptyState();
 
     function initDatePicker(selector) {
         if (!window.flatpickr) {
@@ -487,63 +442,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             localStorage.removeItem(STORAGE_KEY);
         }
-    }
-
-    function seedDemoDataIfNeeded() {
-        if (graph.people.size) return;
-
-        const id1 = graph.createPerson({ name: "Абдулла Юнусов" });
-        const id2 = graph.createPerson({ name: "Малика Каримова" });
-        const id3 = graph.createPerson({ name: "Саида Юнусова" });
-        const id4 = graph.createPerson({ name: "Бахром Рахимов" });
-        const id5 = graph.createPerson({ name: "Нодира Рахимова" });
-
-        graph.addSpouse(id1, id2);
-        graph.addParent(id3, id1);
-        graph.addParent(id3, id2);
-        graph.addSpouse(id3, id4);
-        graph.addParent(id5, id3);
-        graph.addParent(id5, id4);
-
-        graph.updatePerson(id1, {
-            birthDate: "14.05.1935",
-            deathDate: "03.11.2012",
-            isAlive: false,
-            birthPlace: "Самарканд",
-            profession: "Учитель",
-            bio: "Собирал семейные встречи и берег домашний архив."
-        });
-        graph.updatePerson(id2, {
-            birthDate: "18.08.1942",
-            isAlive: true,
-            birthPlace: "Самарканд",
-            profession: "Мастер по вышивке",
-            bio: "Сохранила семейные рецепты и фотографии."
-        });
-        graph.updatePerson(id3, {
-            birthDate: "22.06.1968",
-            isAlive: true,
-            birthPlace: "Ташкент",
-            profession: "Архитектор",
-            bio: "Соединила старую ветвь рода с новой городской историей."
-        });
-        graph.updatePerson(id4, {
-            birthDate: "02.12.1965",
-            isAlive: true,
-            birthPlace: "Бухара",
-            profession: "Инженер",
-            bio: "Любит хранить семейные маршруты и путешествия."
-        });
-        graph.updatePerson(id5, {
-            birthDate: "09.09.1998",
-            isAlive: true,
-            birthPlace: "Ташкент",
-            profession: "Дизайнер",
-            bio: "Собирает цифровую версию семейной истории."
-        });
-
-        graph.setFocus(id3);
-        saveGraph();
     }
 
     function loadSettings() {
@@ -684,6 +582,7 @@ document.addEventListener("DOMContentLoaded", () => {
         populateBranchFilter();
         populateGenerationFilter();
         updateFocusPanel();
+        updateEmptyState();
     }
 
     function initSearch() {
@@ -731,6 +630,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function initControls() {
         getEl("exportBtn").addEventListener("click", exportPng);
+        getEl("openFiltersBtn").addEventListener("click", () => getEl("controlRibbon").classList.toggle("hidden"));
+        getEl("openTimelineBtn").addEventListener("click", () => getEl("timelineStrip").classList.toggle("hidden"));
         getEl("createPersonBtn").addEventListener("click", () => {
             state.currentModalTitleKey = "founderTitle";
             openRelationModal(state.currentModalTitleKey, (id) => {
@@ -739,6 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 selectPerson(id, true);
             });
         });
+        getEl("emptyStateCreateBtn").addEventListener("click", () => getEl("createPersonBtn").click());
         getEl("closePersonPanel").addEventListener("click", () => getEl("personPanel").classList.add("hidden"));
         getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.15));
         getEl("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel * 0.85));
@@ -979,7 +881,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateFocusPanel() {
         const id = graph.getFocus();
         const person = graph.getPerson(id);
-        if (!person) return;
+        if (!person) {
+            getEl("personPanel").classList.add("hidden");
+            return;
+        }
 
         getEl("panelAvatar").src = person.photo || DEFAULT_AVATAR;
         getEl("personNameInput").value = person.name || "";
@@ -1071,6 +976,7 @@ document.addEventListener("DOMContentLoaded", () => {
             saveGraph();
             closeRelationModal();
             selectPerson(id, true);
+            updateEmptyState();
         };
 
         getEl("profileModal").classList.remove("hidden");
@@ -1147,6 +1053,7 @@ document.addEventListener("DOMContentLoaded", () => {
             populateBranchFilter();
             getEl("fullProfileModal").classList.add("hidden");
             selectPerson(id);
+            updateEmptyState();
         };
 
         getEl("fullProfileModal").classList.remove("hidden");
@@ -1166,7 +1073,11 @@ document.addEventListener("DOMContentLoaded", () => {
             focusId = graph.people.keys().next().value;
             graph.setFocus(focusId);
         }
-        if (!focusId) return;
+        if (!focusId) {
+            updateTransform();
+            updateEmptyState();
+            return;
+        }
 
         const { levels, coords, visibleIds } = buildVisibleLayout(focusId);
         renderedLevels = levels;
@@ -1196,6 +1107,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         updateTransform();
+        updateEmptyState();
     }
 
     function buildVisibleLayout(focusId) {
@@ -1366,12 +1278,35 @@ document.addEventListener("DOMContentLoaded", () => {
         return [person.birthDate || "?", person.isAlive ? "..." : (person.deathDate || "?")].join(" - ");
     }
 
+    function updateEmptyState() {
+        const visible = graph.people.size === 0;
+        getEl("emptyState").classList.toggle("hidden", !visible);
+        getEl("personPanel").classList.toggle("hidden", visible);
+        getEl("controlRibbon").classList.toggle("hidden", visible || getEl("controlRibbon").classList.contains("hidden"));
+        getEl("timelineStrip").classList.toggle("hidden", visible || getEl("timelineStrip").classList.contains("hidden"));
+    }
+
+    function getStoriesData() {
+        return Array.from(graph.people.values())
+            .filter(person => person.bio && person.bio.trim())
+            .map(person => ({
+                id: `story-${person.id}`,
+                personId: person.id,
+                branch: getBranchLabel(person),
+                date: person.birthDate || "",
+                title: person.name,
+                body: person.bio,
+                tags: [getBranchLabel(person), person.profession || person.birthPlace || t("stories")].filter(Boolean),
+                image: person.photo || DEFAULT_AVATAR
+            }));
+    }
+
     function renderStories() {
         const list = getEl("storiesList");
         const currentPerson = graph.getPerson(graph.getFocus());
         const activeBranch = state.filters.branch !== "all" ? state.filters.branch : (currentPerson ? getBranchLabel(currentPerson) : "all");
 
-        const stories = DEMO_STORIES.filter(story => activeBranch === "all" || story.branch === activeBranch);
+        const stories = getStoriesData().filter(story => activeBranch === "all" || story.branch === activeBranch);
         if (!stories.length) {
             list.innerHTML = `<div class="empty-story">${t("storiesEmpty")}</div>`;
             return;
@@ -1379,14 +1314,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         list.innerHTML = stories.map(story => `
             <article class="story-card">
-                <img src="${story.image}" alt="${story.title[state.language] || story.title.ru}">
+                <img src="${story.image}" alt="${story.title}">
                 <div class="story-card-body">
                     <div class="story-meta">
                         <span>${story.date}</span>
                         <span>${story.branch}</span>
                     </div>
-                    <h3>${story.title[state.language] || story.title.ru}</h3>
-                    <p>${story.body[state.language] || story.body.ru}</p>
+                    <h3>${story.title}</h3>
+                    <p>${story.body}</p>
                     <div class="story-tags">${story.tags.map(tag => `<span>${tag}</span>`).join("")}</div>
                 </div>
             </article>
@@ -1398,15 +1333,13 @@ document.addEventListener("DOMContentLoaded", () => {
         graph.people.forEach(person => {
             if (person.birthDate) items.push({ date: person.birthDate, label: t("timelineBirth"), title: person.name, subtitle: person.birthPlace || getBranchLabel(person), personId: person.id });
             if (person.deathDate) items.push({ date: person.deathDate, label: t("timelineDeath"), title: person.name, subtitle: person.deathPlace || getBranchLabel(person), personId: person.id });
-            if (person.spouses.size) items.push({ date: person.birthDate || "1980", label: t("timelineUnion"), title: person.name, subtitle: getBranchLabel(person), personId: person.id });
-            if (person.livingPlaces) items.push({ date: person.birthDate || "1990", label: t("timelineMove"), title: person.livingPlaces, subtitle: person.name, personId: person.id });
         });
 
-        DEMO_STORIES.forEach(story => {
+        getStoriesData().forEach(story => {
             items.push({
                 date: story.date,
                 label: t("stories"),
-                title: story.title[state.language] || story.title.ru,
+                title: story.title,
                 subtitle: story.branch,
                 personId: story.personId
             });
@@ -1423,6 +1356,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderTimeline() {
         const track = getEl("timelineTrack");
         const events = buildTimelineEvents();
+        if (!events.length) {
+            track.innerHTML = `<div class="empty-story timeline-empty">${t("timelineEmpty")}</div>`;
+            return;
+        }
         track.innerHTML = events.map(event => `
             <button class="timeline-event" type="button" data-person-id="${event.personId || ""}">
                 <span class="timeline-event-year">${event.date}</span>
@@ -1443,7 +1380,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = getEl("bookContent");
         const people = Array.from(graph.people.values()).filter(person => state.filters.branch === "all" || getBranchLabel(person) === state.filters.branch);
         const branches = Array.from(new Set(people.map(getBranchLabel)));
-        const stories = DEMO_STORIES.filter(story => state.filters.branch === "all" || story.branch === state.filters.branch);
+        const stories = getStoriesData().filter(story => state.filters.branch === "all" || story.branch === state.filters.branch);
         const timeline = buildTimelineEvents().slice(0, 10);
 
         container.innerHTML = `
@@ -1482,8 +1419,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="book-story-list">
                     ${stories.map(story => `
                         <article class="book-story-row">
-                            <strong>${story.title[state.language] || story.title.ru}</strong>
-                            <p>${story.body[state.language] || story.body.ru}</p>
+                            <strong>${story.title}</strong>
+                            <p>${story.body}</p>
                             <span>${story.date} · ${story.branch}</span>
                         </article>
                     `).join("")}

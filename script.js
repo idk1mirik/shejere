@@ -911,6 +911,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 2400);
     }
 
+    function openImageLightbox(src) {
+        if (!src) return;
+        getEl("imageLightboxPreview").src = src;
+        getEl("imageLightboxModal").classList.remove("hidden");
+    }
+
+    function closeImageLightbox() {
+        getEl("imageLightboxModal").classList.add("hidden");
+        getEl("imageLightboxPreview").removeAttribute("src");
+    }
+
     function initAccessGate() {
         const gate = getEl("accessGate");
         const input = getEl("accessCodeInput");
@@ -1111,7 +1122,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         getEl("emptyStateCreateBtn").addEventListener("click", () => getEl("createPersonBtn").click());
         getEl("emptyStateGuideBtn").addEventListener("click", centerCurrentFocus);
-        getEl("closePersonPanel").addEventListener("click", () => getEl("personPanel").classList.add("hidden"));
+        getEl("closePersonPanel").addEventListener("click", () => {
+            getEl("personPanel").classList.add("hidden");
+            isMovingCamera = false;
+        });
         getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.15));
         getEl("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel * 0.85));
         getEl("modeSwitchBtn").addEventListener("click", () => {
@@ -1134,6 +1148,10 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("closeGuideBtn").addEventListener("click", closeViewerGuide);
         getEl("viewerGuideModal").addEventListener("click", (event) => {
             if (event.target.id === "viewerGuideModal") closeViewerGuide();
+        });
+        getEl("closeImageLightbox").addEventListener("click", closeImageLightbox);
+        getEl("imageLightboxModal").addEventListener("click", (event) => {
+            if (event.target.id === "imageLightboxModal") closeImageLightbox();
         });
         getEl("familyStoryBtn").addEventListener("click", () => {
             renderFamilyStory();
@@ -1182,14 +1200,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function initProfileModal() {
-        getEl("closeFullProfile").addEventListener("click", () => getEl("fullProfileModal").classList.add("hidden"));
-        getEl("closeProfileViewerBtn").addEventListener("click", () => getEl("fullProfileModal").classList.add("hidden"));
+        const closeProfileModal = () => {
+            getEl("fullProfileModal").classList.add("hidden");
+            if (window.innerWidth < 768 && state.mode === "viewer") {
+                getEl("personPanel").classList.remove("hidden");
+            }
+        };
+        getEl("closeFullProfile").addEventListener("click", closeProfileModal);
+        getEl("closeProfileViewerBtn").addEventListener("click", closeProfileModal);
         getEl("closeModalBtn").addEventListener("click", closeRelationModal);
         getEl("profileModal").addEventListener("click", (event) => {
             if (event.target.id === "profileModal") closeRelationModal();
         });
         getEl("fullProfileModal").addEventListener("click", (event) => {
-            if (event.target.id === "fullProfileModal") getEl("fullProfileModal").classList.add("hidden");
+            if (event.target.id === "fullProfileModal") closeProfileModal();
         });
         getEl("openFullProfileBtn").addEventListener("click", openFullProfile);
         getEl("bioLanguageSwitcher").addEventListener("click", (event) => {
@@ -1390,6 +1414,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         getEl("personPanel").classList.remove("hidden");
         getEl("panelAvatar").src = person.photo || DEFAULT_AVATAR;
+        getEl("panelAvatar").onclick = () => openImageLightbox(person.photo || DEFAULT_AVATAR);
         getEl("personNameInput").value = person.name || "";
         getEl("quickBirth").value = person.birthDate || "—";
         getEl("quickDeath").value = person.isAlive !== false && !person.deathDate ? t("aliveShort") : (person.deathDate || "—");
@@ -1731,6 +1756,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (Date.now() < suppressNodeSelectionUntil) return;
             if (!isMovingCamera) selectPerson(id, true);
         });
+        group.addEventListener("touchend", (event) => {
+            event.stopPropagation();
+            if (Date.now() < suppressNodeSelectionUntil) return;
+            if (!isMovingCamera) {
+                getEl("personPanel").classList.remove("hidden");
+                selectPerson(id, true);
+            }
+        }, { passive: true });
         return group;
     }
 
@@ -1905,6 +1938,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const image = document.createElement("img");
             image.src = url;
             image.alt = "Family photo";
+            image.addEventListener("click", () => openImageLightbox(url));
             item.appendChild(image);
 
             if (isAdminMode() && person) {
@@ -2003,6 +2037,7 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("fName").value = person.name || "";
         getEl("fMaidenName").value = person.maidenName || "";
         getEl("modalAvatarPreview").src = person.photo || DEFAULT_AVATAR;
+        getEl("modalAvatarPreview").onclick = () => openImageLightbox(person.photo || DEFAULT_AVATAR);
         getEl("fBirth").value = person.birthDate || "";
         getEl("fDeath").value = person.deathDate || "";
         state.draftDetailsTranslations = normalizeDetailsTranslations(person.detailsTranslations, {
@@ -2046,10 +2081,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const photoUpload = getEl("uploadPhoto");
         getEl("modalAvatarContainer").onclick = (event) => {
             if (!isAdminMode()) {
-                if (!event.target.closest(".upload-badge")) showCustomAlert(t("readonlyToast"));
+                if (!event.target.closest(".upload-badge") && !event.target.closest("#modalAvatarPreview")) showCustomAlert(t("readonlyToast"));
                 return;
             }
-            if (!event.target.closest(".upload-badge")) photoUpload.click();
+            if (event.target.closest(".upload-badge")) return;
         };
 
         photoUpload.onchange = (event) => {

@@ -367,6 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
     applySettings();
     applyTranslations();
     updateModeUi();
+    updateMobileViewportMetrics();
     render(true);
 
     function t(key) {
@@ -454,6 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setTheme(state.theme, false);
         updateLanguageButtons();
         updateThemeButtons();
+        updateMobileViewportMetrics();
     }
 
     function initThemePanels() {
@@ -729,6 +731,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         window.addEventListener("resize", () => render(false));
+        window.addEventListener("resize", updateMobileViewportMetrics);
+    }
+
+    function updateMobileViewportMetrics() {
+        const topBar = document.querySelector(".top-bar");
+        const topBarHeight = topBar ? Math.ceil(topBar.getBoundingClientRect().height) : 0;
+        document.documentElement.style.setProperty("--top-ui-height", `${topBarHeight}px`);
     }
 
     function guardAdminAction() {

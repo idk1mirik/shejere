@@ -3,6 +3,7 @@
 :root {
     --theme-origin-x: 50vw;
     --theme-origin-y: 20vh;
+    --top-ui-height: 180px;
     --bg: #eef1e8;
     --bg-secondary: rgba(255, 255, 255, 0.44);
     --card: rgba(255, 253, 248, 0.84);
@@ -1284,6 +1285,10 @@ span.flatpickr-weekday {
         background-attachment: fixed;
     }
 
+    .ui-shell {
+        inset: 0 0 auto;
+    }
+
     .top-bar {
         padding: calc(10px + env(safe-area-inset-top)) 10px 10px;
         gap: 10px;
@@ -1298,13 +1303,33 @@ span.flatpickr-weekday {
     }
 
     .toolbar {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        padding-bottom: 2px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        width: 100%;
+        overflow: visible;
+        padding-bottom: 0;
     }
 
     .theme-panel-header {
-        display: none;
+        display: flex;
+        justify-content: center;
+        grid-column: span 1;
+    }
+
+    .toolbar > * {
+        min-width: 0;
+    }
+
+    .toolbar .glass-btn,
+    .segment-control,
+    .theme-panel-header {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #modeSwitchBtn {
+        grid-column: 1 / -1;
     }
 
     .status-strip {
@@ -1320,8 +1345,16 @@ span.flatpickr-weekday {
         padding: 13px 14px;
     }
 
+    .canvas-area {
+        inset: calc(var(--top-ui-height) + 6px) 0 0 0;
+    }
+
+    #viewport {
+        height: calc(100dvh - var(--top-ui-height) - 6px);
+    }
+
     .empty-state {
-        inset: 176px 12px 34px;
+        inset: 14px 12px 34px;
     }
 
     .empty-state-card {
@@ -1364,9 +1397,18 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
     }
 
-    .mobile-theme-panel,
+    .mobile-theme-panel {
+        display: none;
+    }
+
     .mobile-zoom-controls {
         display: flex;
+    }
+
+    .floating-mobile-tools {
+        left: auto;
+        right: 12px;
+        bottom: calc(14px + env(safe-area-inset-bottom));
     }
 
     .theme-tile {
@@ -1448,6 +1490,16 @@ span.flatpickr-weekday {
 
     .top-bar {
         padding-inline: 8px;
+    }
+
+    .toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .theme-panel-header,
+    .segment-control,
+    #modeSwitchBtn {
+        grid-column: auto;
     }
 
     .brand-block,

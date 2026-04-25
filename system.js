@@ -55,15 +55,18 @@ class FamilyGraph {
         this.focusPersonId = null;
     }
 
-    createPerson({ name }) {
-        const person = new Person({ name });
+    createPerson(data = {}) {
+        const person = new Person(data);
         this.people.set(person.id, person);
+        if (!this.focusPersonId) this.focusPersonId = person.id;
         return person.id;
     }
 
     updatePerson(id, data) {
         const person = this.people.get(id);
-        if (person) Object.assign(person, data);
+        if (!person) return false;
+        Object.assign(person, data);
+        return true;
     }
 
     getPerson(id) {
@@ -82,7 +85,7 @@ class FamilyGraph {
         if (childId === parentId) return false;
         const child = this.people.get(childId);
         const parent = this.people.get(parentId);
-        if (!child || !parent || child.parents.has(parentId)) return false;
+        if (!child || !parent || child.parents.has(parentId) || child.parents.size >= 2) return false;
 
         child.parents.add(parentId);
         parent.children.add(childId);
@@ -91,19 +94,38 @@ class FamilyGraph {
 
     addSpouse(id1, id2) {
         if (id1 === id2) return false;
-        const p1 = this.people.get(id1);
-        const p2 = this.people.get(id2);
-        if (!p1 || !p2 || p1.spouses.has(id2)) return false;
+        const first = this.people.get(id1);
+        const second = this.people.get(id2);
+        if (!first || !second || first.spouses.has(id2)) return false;
 
-        p1.spouses.add(id2);
-        p2.spouses.add(id1);
+        first.spouses.add(id2);
+        second.spouses.add(id1);
         return true;
+    }
+
+    getStats() {
+        let alive = 0;
+        let archived = 0;
+
+        this.people.forEach((person) => {
+            if (person.isAlive) {
+                alive += 1;
+            } else {
+                archived += 1;
+            }
+        });
+
+        return {
+            total: this.people.size,
+            alive,
+            archived
+        };
     }
 
     toJSON() {
         return {
             focusPersonId: this.focusPersonId,
-            people: Array.from(this.people.values()).map(person => person.toJSON())
+            people: Array.from(this.people.values()).map((person) => person.toJSON())
         };
     }
 
@@ -111,7 +133,7 @@ class FamilyGraph {
         this.people.clear();
         if (!data || !Array.isArray(data.people)) return;
 
-        data.people.forEach(item => {
+        data.people.forEach((item) => {
             const person = new Person(item);
             this.people.set(person.id, person);
         });

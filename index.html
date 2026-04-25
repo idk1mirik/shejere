@@ -3,28 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Мое Шежере | Soft Heritage</title>
+    <title>Моё Шежере | Soft Heritage</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="ambient-gradient ambient-left"></div>
-    <div class="ambient-gradient ambient-right"></div>
+    <div class="background-orb orb-left"></div>
+    <div class="background-orb orb-right"></div>
+    <div class="background-grid"></div>
 
-    <div class="ui-wrapper">
-        <header class="top-bar">
+    <div id="accessGate" class="access-gate">
+        <div class="access-card">
+            <p class="section-kicker" data-i18n="accessKicker">Family archive</p>
+            <h2 data-i18n="accessTitle">Вход в семейное дерево</h2>
+            <p class="access-copy" data-i18n="accessText">Введите код, чтобы открыть режим редактирования или гостевой просмотр.</p>
+
+            <div class="access-actions">
+                <button type="button" class="glass-btn primary" data-mode-trigger="admin" data-i18n="enterAdmin">Войти как админ</button>
+                <button type="button" class="glass-btn" data-mode-trigger="viewer" data-i18n="enterViewer">Войти как гость</button>
+            </div>
+
+            <label class="input-label" for="accessCodeInput" data-i18n="accessLabel">Код доступа</label>
+            <div class="access-input-row">
+                <input type="password" id="accessCodeInput" class="neomorph-input" data-i18n-placeholder="accessPlaceholder" placeholder="Введите код">
+                <button type="button" id="unlockBtn" class="glass-btn accent-fill" data-i18n="unlock">Открыть</button>
+            </div>
+
+            <p id="accessHint" class="access-hint" data-i18n="accessHint">Подсказка: позже это можно заменить на настоящую авторизацию с сервером.</p>
+        </div>
+    </div>
+
+    <div class="ui-shell">
+        <header class="top-bar reveal reveal-up">
             <div class="brand-block">
-                <p class="brand-kicker" data-i18n="brandKicker">Family archive</p>
+                <p class="section-kicker" data-i18n="brandKicker">Family archive</p>
                 <h1 class="logo">SHEDJERE</h1>
                 <p class="tagline" data-i18n="tagline">Семейная память в живом дереве</p>
             </div>
 
-            <div class="search-container">
-                <input type="text" id="treeSearch" class="neomorph-input" data-i18n-placeholder="searchPlaceholder" placeholder="Найти человека...">
-                <div id="searchResults" class="search-results hidden"></div>
+            <div class="search-column">
+                <div class="search-container">
+                    <input type="text" id="treeSearch" class="neomorph-input" data-i18n-placeholder="searchPlaceholder" placeholder="Найти человека...">
+                    <div id="searchResults" class="search-results hidden"></div>
+                </div>
+
+                <div class="status-strip">
+                    <div class="status-card">
+                        <span class="status-label" data-i18n="modeLabel">Режим</span>
+                        <strong id="modeBadge" class="mode-badge viewer">Viewer</strong>
+                    </div>
+                    <div class="status-card">
+                        <span class="status-label" data-i18n="treeLabel">Дерево</span>
+                        <strong id="treeStats" class="status-value">0</strong>
+                    </div>
+                    <div class="status-card tip-card">
+                        <span class="status-label" data-i18n="tipLabel">Подсказка</span>
+                        <strong id="tipText" class="status-value" data-i18n="tipViewer">Гости могут смотреть без редактирования</strong>
+                    </div>
+                </div>
             </div>
 
             <div class="toolbar">
@@ -37,22 +76,31 @@
                 <div id="themePanel" class="theme-panel-header" aria-label="Theme"></div>
 
                 <button id="exportBtn" class="glass-btn" type="button" data-i18n="exportPng">Скачать PNG</button>
-                <button id="createPersonBtn" class="glass-btn primary" type="button" data-i18n="createPerson">Добавить человека</button>
+                <button id="createPersonBtn" class="glass-btn primary admin-only" type="button" data-i18n="createPerson">Добавить человека</button>
+                <button id="modeSwitchBtn" class="glass-btn" type="button" data-i18n="switchMode">Сменить режим</button>
             </div>
         </header>
     </div>
 
     <main class="canvas-area" aria-label="Родословное дерево">
         <div id="emptyState" class="empty-state hidden">
-            <div class="empty-state-card">
+            <div class="empty-state-card reveal reveal-scale">
                 <p class="section-kicker" data-i18n="emptyKicker">Family archive</p>
                 <h2 data-i18n="emptyTitle">Здесь появится ваше родословное дерево</h2>
                 <p data-i18n="emptyText">Начните с одного человека, а потом спокойно добавляйте родителей, супругов и детей.</p>
-                <button id="emptyStateCreateBtn" class="glass-btn primary" type="button" data-i18n="createPerson">Добавить человека</button>
+                <div class="empty-state-actions">
+                    <button id="emptyStateCreateBtn" class="glass-btn primary admin-only" type="button" data-i18n="createPerson">Добавить человека</button>
+                    <button id="emptyStateGuideBtn" class="glass-btn" type="button" data-i18n="focusTree">Показать центр дерева</button>
+                </div>
             </div>
         </div>
 
         <svg id="viewport">
+            <defs>
+                <filter id="cardShadow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="rgba(24, 38, 31, 0.18)"/>
+                </filter>
+            </defs>
             <g id="scene"></g>
         </svg>
     </main>
@@ -66,11 +114,14 @@
         </div>
     </div>
 
-    <aside id="personPanel" class="side-panel hidden">
+    <aside id="personPanel" class="side-panel hidden reveal reveal-right">
         <div class="drag-handle"></div>
         <div class="panel-header">
             <img id="panelAvatar" class="avatar-big" src="" alt="">
-            <button id="closePersonPanel" class="glass-btn icon-btn" type="button" aria-label="Закрыть">×</button>
+            <div class="panel-header-meta">
+                <strong id="panelModePill" class="panel-mode-pill viewer" data-i18n="viewerMode">Только просмотр</strong>
+                <button id="closePersonPanel" class="glass-btn icon-btn" type="button" aria-label="Закрыть">&times;</button>
+            </div>
         </div>
 
         <input
@@ -83,38 +134,43 @@
 
         <div class="quick-dates">
             <input type="text" id="quickBirth" class="neomorph-input small" data-i18n-placeholder="birthShort" placeholder="Рождение" readonly>
-            <span class="dash">—</span>
+            <span class="dash">-</span>
             <input type="text" id="quickDeath" class="neomorph-input small" data-i18n-placeholder="deathShort" placeholder="Смерть" readonly>
         </div>
 
         <div id="focusSummary" class="focus-summary"></div>
 
+        <div class="story-card">
+            <span class="story-label" data-i18n="lifeHighlights">Коротко</span>
+            <p id="storyPreview" class="story-preview" data-i18n="storyPlaceholder">Здесь можно хранить семейную историю, характерные факты и память о человеке.</p>
+        </div>
+
         <button id="openFullProfileBtn" class="glass-btn wide" type="button" data-i18n="openProfile">Открыть анкету</button>
 
-        <div class="rel-section">
+        <div class="rel-section admin-only">
             <label data-i18n="addRelation">Добавить родство</label>
             <div class="rel-grid">
-                <button id="addParent" class="rel-btn" type="button"><span>👵</span><span data-i18n="parent">Родитель</span></button>
-                <button id="addSpouse" class="rel-btn" type="button"><span>💍</span><span data-i18n="spouse">Пара</span></button>
-                <button id="addChild" class="rel-btn" type="button"><span>👶</span><span data-i18n="child">Ребенок</span></button>
+                <button id="addParent" class="rel-btn" type="button"><span>↑</span><span data-i18n="parent">Родитель</span></button>
+                <button id="addSpouse" class="rel-btn" type="button"><span>∞</span><span data-i18n="spouse">Пара</span></button>
+                <button id="addChild" class="rel-btn" type="button"><span>↓</span><span data-i18n="child">Ребенок</span></button>
             </div>
         </div>
     </aside>
 
     <div id="fullProfileModal" class="modal-overlay hidden">
-        <div class="full-profile-card">
+        <div class="full-profile-card reveal reveal-up">
             <button class="close-x" id="closeFullProfile" type="button" aria-label="Закрыть">&times;</button>
 
             <div class="profile-layout">
                 <div class="profile-photo-side">
                     <div class="avatar-big-wrapper" id="modalAvatarContainer">
                         <img id="modalAvatarPreview" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Фото">
-                        <label for="uploadPhoto" class="upload-badge" aria-label="Загрузить фото">
-                            <span>📷</span>
+                        <label for="uploadPhoto" class="upload-badge admin-only" aria-label="Загрузить фото">
+                            <span>+</span>
                             <input type="file" id="uploadPhoto" hidden accept="image/*">
                         </label>
                     </div>
-                    <p class="photo-hint" data-i18n="photoHint">Нажми на фото, чтобы загрузить новое</p>
+                    <p id="modalModeHint" class="photo-hint" data-i18n="photoHint">Нажми на фото, чтобы загрузить новое</p>
                 </div>
 
                 <div class="profile-info-side">
@@ -136,17 +192,17 @@
                             <label class="input-label" data-i18n="birthDateLabel">Дата рождения</label>
                             <div class="date-field">
                                 <input type="text" id="fBirth" class="neomorph-input" data-i18n-placeholder="datePlaceholder" placeholder="дд.мм.гггг">
-                                <button class="date-icon-btn" type="button" data-date-trigger="fBirth" aria-label="Open calendar">▦</button>
+                                <button class="date-icon-btn admin-only" type="button" data-date-trigger="fBirth" aria-label="Open calendar">◦</button>
                             </div>
                         </div>
                         <div class="flex-col">
                             <div class="death-label-row">
                                 <label class="input-label" data-i18n="deathDateLabel">Дата смерти</label>
-                                <label class="alive-check"><input type="checkbox" id="fIsAlive"> <span data-i18n="isAlive">Жив(а)</span></label>
+                                <label class="alive-check admin-only"><input type="checkbox" id="fIsAlive"> <span data-i18n="isAlive">Жив(а)</span></label>
                             </div>
                             <div class="date-field">
                                 <input type="text" id="fDeath" class="neomorph-input" data-i18n-placeholder="datePlaceholder" placeholder="дд.мм.гггг">
-                                <button class="date-icon-btn" type="button" data-date-trigger="fDeath" aria-label="Open calendar">▦</button>
+                                <button class="date-icon-btn admin-only" type="button" data-date-trigger="fDeath" aria-label="Open calendar">◦</button>
                             </div>
                         </div>
                     </div>
@@ -190,7 +246,8 @@
                     </div>
 
                     <div class="profile-actions">
-                        <button id="saveProfileBtn" class="glass-btn primary" type="button" data-i18n="saveChanges">Сохранить изменения</button>
+                        <button id="saveProfileBtn" class="glass-btn primary admin-only" type="button" data-i18n="saveChanges">Сохранить изменения</button>
+                        <button id="closeProfileViewerBtn" class="glass-btn viewer-only hidden" type="button" data-i18n="close">Закрыть</button>
                     </div>
                 </div>
             </div>
@@ -198,7 +255,7 @@
     </div>
 
     <div id="profileModal" class="modal-overlay hidden">
-        <div class="modal-card">
+        <div class="modal-card reveal reveal-scale">
             <h3 id="modalTitle" data-i18n="newPersonTitle">Новый человек</h3>
             <div id="existingList" class="existing-list"></div>
             <div class="modal-hint" data-i18n="orCreateNew">или создай нового</div>

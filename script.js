@@ -1,594 +1,673 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const STORAGE_KEY = "shedjere-family-tree-v1";
+    const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
     const graph = new FamilyGraph();
     const scene = document.getElementById("scene");
     const svg = document.getElementById("viewport");
-    
-    // ✅ ИСПРАВЛЕНО: Ищем правильный ID окна создания (profileModal)
-    const modal = document.getElementById("profileModal"); 
-    
-    let translateX = window.innerWidth / 2, translateY = window.innerHeight / 2, zoomLevel = 0.8;
-    let isDragging = false, sX, sY;
-
     const getEl = (id) => document.getElementById(id);
 
-    // =========================================
-    // 📅 ВОССТАНОВЛЕНИЕ КАЛЕНДАРЕЙ
-    // =========================================
-    const birthPicker = flatpickr("#fBirth", { dateFormat: "d.m.Y", locale: "ru", allowInput: true });
-    const deathPicker = flatpickr("#fDeath", { dateFormat: "d.m.Y", locale: "ru", allowInput: true });
+    let translateX = window.innerWidth / 2;
+    let translateY = window.innerHeight / 2;
+    let zoomLevel = window.innerWidth < 768 ? 0.72 : 0.8;
+    let isDragging = false;
+    let isMovingCamera = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+    let initialPinchDistance = null;
+    let initialZoom = 1;
+
+    const birthPicker = initDatePicker("#fBirth");
+    const deathPicker = initDatePicker("#fDeath");
+
+    loadGraph();
+    initThemePanel();
+    initSearch();
+    initControls();
+    initCamera();
+    initProfileModal();
+
+    render(true);
+
+    function initDatePicker(selector) {
+        if (window.flatpickr) {
+            return flatpickr(selector, {
+                dateFormat: "d.m.Y",
+                locale: flatpickr.l10ns && flatpickr.l10ns.ru ? "ru" : "default",
+                allowInput: true
+            });
+        }
+        return { clear: () => {}, _input: document.querySelector(selector) };
+    }
+
+    function saveGraph() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(graph.toJSON()));
+        } catch (error) {
+            showCustomAlert("Не удалось сохранить данные. Возможно, фото слишком большое.");
+        }
+    }
+
+    function loadGraph() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) graph.load(JSON.parse(saved));
+        } catch (error) {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    }
 
     function closeAllUI() {
-        const panels = ["personPanel", "profileModal", "searchResults"];
-        panels.forEach(id => {
-            const el = document.getElementById(id);
+        ["personPanel", "profileModal", "fullProfileModal", "searchResults"].forEach(id => {
+            const el = getEl(id);
             if (el) el.classList.add("hidden");
         });
     }
 
-    // =========================================
-    // 🔔 КАСТОМНЫЕ УВЕДОМЛЕНИЯ
-    // =========================================
-    function showCustomAlert(msg) {
+    function showCustomAlert(message) {
         const toast = document.createElement("div");
         toast.className = "custom-toast";
-        toast.textContent = msg;
+        toast.textContent = message;
         document.body.appendChild(toast);
-        
-        setTimeout(() => toast.classList.add("show"), 10);
+
+        requestAnimationFrame(() => toast.classList.add("show"));
         setTimeout(() => {
             toast.classList.remove("show");
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+            setTimeout(() => toast.remove(), 250);
+        }, 2600);
     }
 
-    // =========================================
-    // 🌈 КРУТАЯ ПАНЕЛЬ ТЕМ
-    // =========================================
     function initThemePanel() {
+        const toolbar = document.querySelector(".toolbar");
         const exportBtn = getEl("exportBtn");
-        if (!exportBtn) return;
-    
-        if (document.querySelector(".theme-panel-header")) return;
-    
+        if (!toolbar || !exportBtn || document.querySelector(".theme-panel-header")) return;
+
         const themePanel = document.createElement("div");
         themePanel.className = "theme-panel-header";
-        
         const themes = [
-            { name: 'default', color: '#ffffff' },
-            { name: 'dark', color: '#121212' },
-            { name: 'sunset', color: '#fdf0d5' },
-            { name: 'forest', color: '#e8f5e9' }
+            { name: "default", label: "Светлая", color: "#e6e9ef" },
+            { name: "dark", label: "Темная", color: "#121212" },
+            { name: "sunset", label: "Теплая", color: "#f4ecd8" },
+            { name: "forest", label: "Лесная", color: "#e8f5e9" }
         ];
-        
-        themePanel.innerHTML = themes.map(t => `
-            <div class="theme-tile" 
-                 data-theme="${t.name}" 
-                 style="background-color: ${t.color};" 
-                 title="Тема: ${t.name}">
-            </div>
-        `).join('');
-        
-        exportBtn.parentNode.insertBefore(themePanel, exportBtn);
-    
-        themePanel.addEventListener("click", (e) => {
-            const tile = e.target.closest(".theme-tile");
-            if (tile) {
-                document.querySelectorAll(".theme-tile").forEach(el => el.classList.remove("active"));
-                tile.classList.add("active");
-                window.setTheme(tile.dataset.theme);
-            }
+
+        themePanel.innerHTML = themes.map(theme => `
+            <button class="theme-tile" type="button" data-theme="${theme.name}" style="background-color:${theme.color}" title="${theme.label}"></button>
+        `).join("");
+        toolbar.insertBefore(themePanel, exportBtn);
+
+        themePanel.addEventListener("click", (event) => {
+            const tile = event.target.closest(".theme-tile");
+            if (!tile) return;
+            document.querySelectorAll(".theme-tile").forEach(item => item.classList.remove("active"));
+            tile.classList.add("active");
+            setTheme(tile.dataset.theme);
         });
     }
-    initThemePanel();
 
-    function applyTheme(themeName) {
-        if (themeName === 'default') {
-            document.documentElement.removeAttribute('data-theme');
+    function setTheme(themeName) {
+        if (themeName === "default") {
+            document.documentElement.removeAttribute("data-theme");
         } else {
-            document.documentElement.setAttribute('data-theme', themeName);
+            document.documentElement.setAttribute("data-theme", themeName);
         }
-        render(false); 
+        render(false);
     }
 
-    window.setTheme = (themeName) => {
-        if (!document.startViewTransition) {
-            applyTheme(themeName);
-            return;
-        }
+    function initSearch() {
+        const treeSearch = getEl("treeSearch");
+        const searchResults = getEl("searchResults");
+        if (!treeSearch || !searchResults) return;
 
-        const transition = document.startViewTransition(() => applyTheme(themeName));
-        transition.ready.then(() => {
-            document.documentElement.animate(
-                [
-                    { clipPath: 'circle(0% at 100% 0%)' },
-                    { clipPath: 'circle(150% at 100% 0%)' }
-                ],
-                {
-                    duration: 700,
-                    easing: 'ease-in-out',
-                    pseudoElement: '::view-transition-new(root)'
-                }
-            );
-        });
-    };
+        treeSearch.addEventListener("input", () => {
+            const query = treeSearch.value.toLowerCase().trim();
+            searchResults.innerHTML = "";
 
-    // =========================================
-    // 🔍 ЛОГИКА ПОИСКА
-    // =========================================
-    const treeSearch = getEl("treeSearch");
-    const searchResults = getEl("searchResults");
-
-    if (treeSearch && searchResults) { 
-        treeSearch.oninput = (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            if (query.length < 1) {
+            if (!query) {
                 searchResults.classList.add("hidden");
                 return;
             }
 
-            const matches = Array.from(graph.people.entries()).filter(([id, p]) =>
-                p.name && p.name.toLowerCase().includes(query)
+            const matches = Array.from(graph.people.entries()).filter(([, person]) =>
+                person.name.toLowerCase().includes(query)
             );
 
-            if (matches.length > 0) {
-                searchResults.innerHTML = matches.map(([id, p]) => `
-                    <div class="search-item" data-id="${id}">
-                        ${p.name}
-                    </div>
-                `).join("");
-
-                searchResults.classList.remove("hidden");
-            } else {
+            if (!matches.length) {
                 searchResults.classList.add("hidden");
+                return;
             }
-        };
 
-        searchResults.onclick = (e) => {
-            const item = e.target.closest(".search-item");
-            if (item) {
-                const id = item.dataset.id;
-                treeSearch.value = "";
-                searchResults.classList.add("hidden");
-                selectPerson(id);
-                render(true);
-            }
-        };
+            matches.forEach(([id, person]) => {
+                const item = document.createElement("button");
+                item.type = "button";
+                item.className = "search-item";
+                item.textContent = person.name;
+                item.dataset.id = id;
+                searchResults.appendChild(item);
+            });
+            searchResults.classList.remove("hidden");
+        });
 
-        window.addEventListener("click", (e) => {
-            if (!e.target.closest(".search-container")) {
+        searchResults.addEventListener("click", (event) => {
+            const item = event.target.closest(".search-item");
+            if (!item) return;
+            treeSearch.value = "";
+            searchResults.classList.add("hidden");
+            selectPerson(item.dataset.id, true);
+        });
+
+        window.addEventListener("click", (event) => {
+            if (!event.target.closest(".search-container")) {
                 searchResults.classList.add("hidden");
             }
         });
     }
 
-    // =========================================
-    // 📸 ЭКСПОРТ (PNG)
-    // =========================================
-    getEl("exportBtn").onclick = function() {
-        const btn = this; btn.textContent = "⌛ Сохраняю..."; btn.disabled = true;
-        const style = getComputedStyle(document.documentElement);
-        const currentBg = style.getPropertyValue('--bg').trim() || "#e6e9ef";
-        const currentText = style.getPropertyValue('--text').trim() || "#2d3047";
-        const currentAccent = style.getPropertyValue('--accent').trim() || "#5542ff";
-
-        const bbox = scene.getBBox();
-        const padding = 60;
-        const width = bbox.width + padding * 2;
-        const height = bbox.height + padding * 2;
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext("2d");
-
-        const svgClone = svg.cloneNode(true);
-        const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
-        
-        styleElement.textContent = `
-            .link { fill: none; stroke: ${currentText}; stroke-width: 2.5; opacity: 0.3; }
-            .spouse-link { fill: none; stroke: ${currentAccent}; stroke-width: 3; stroke-dasharray: 8,8; }
-            .person-node circle { fill: #ffffff; stroke: ${currentAccent}; stroke-width: 1px; }
-            .person-node text { font-family: 'Inter', sans-serif; font-weight: 900; fill: ${currentText}; font-size: 12px; }
-            .person-node rect { fill: #ffffff; opacity: 0.9; }
-        `;
-        svgClone.insertBefore(styleElement, svgClone.firstChild);
-
-        svgClone.setAttribute("width", width);
-        svgClone.setAttribute("height", height);
-        const sceneClone = svgClone.querySelector("#scene");
-        sceneClone.setAttribute("transform", `translate(${-bbox.x + padding}, ${-bbox.y + padding})`);
-        
-        const svgData = new XMLSerializer().serializeToString(svgClone);
-        const img = new Image();
-        img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-
-        img.onload = () => {
-            ctx.fillStyle = currentBg;
-            ctx.fillRect(0, 0, width, height);
-            ctx.drawImage(img, 0, 0);
-            const link = document.createElement('a');
-            link.download = `Shedjere-${Date.now()}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            btn.textContent = "📸 Скачать PNG"; btn.disabled = false;
-        };
-    };
-
-    // =========================================
-    // 👤 ВЫБОР ЧЕЛОВЕКА
-    // =========================================
-    function selectPerson(id) {
-        closeAllUI();
-        if (!id) return;
-        graph.setFocus(id);
-        const p = graph.getPerson(id);
-        
-        getEl("personPanel").classList.remove("hidden");
-        getEl("panelAvatar").src = p.photo || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-        getEl("personNameInput").value = p.name || "";
-        getEl("quickBirth").value = p.birthDate || "—";
-        getEl("quickDeath").value = (p.isAlive !== false && !p.deathDate) ? "Жив(а)" : (p.deathDate || "—");
-
-        getEl("addParent").onclick = (e) => {
-            e.stopPropagation();
-            if (p.parents.size >= 2) return showCustomAlert("У этого человека уже указаны оба родителя!");
-            openModal("Добавить родителя", rid => { graph.addParent(id, rid); render(true); });
-        };
-
-        getEl("addSpouse").onclick = (e) => {
-            e.stopPropagation();
-            if (p.spouses.size >= 1) return showCustomAlert("У этого человека уже указана пара!");
-            openModal("Добавить супруга(у)", rid => { graph.addSpouse(id, rid); render(true); });
-        };
-
-        getEl("addChild").onclick = (e) => { 
-            e.stopPropagation();
-            openModal("Добавить ребенка", rid => { graph.addParent(rid, id); render(true); }); 
-        };
-
-        render(false);
+    function initControls() {
+        getEl("exportBtn").addEventListener("click", exportPng);
+        getEl("createPersonBtn").addEventListener("click", () => {
+            openRelationModal("Основатель рода", id => {
+                graph.setFocus(id);
+                saveGraph();
+                selectPerson(id, true);
+            });
+        });
+        getEl("closePersonPanel").addEventListener("click", () => getEl("personPanel").classList.add("hidden"));
+        getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.2));
+        getEl("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel * 0.82));
+        window.addEventListener("resize", () => render(false));
     }
 
-    // =========================================
-    // 🌳 РЕНДЕР
-    // =========================================
+    function initCamera() {
+        svg.addEventListener("wheel", event => {
+            event.preventDefault();
+            setZoom(zoomLevel * (event.deltaY < 0 ? 1.1 : 0.9));
+        }, { passive: false });
+
+        svg.addEventListener("mousedown", event => {
+            if (event.target.closest(".person-node")) return;
+            isDragging = true;
+            isMovingCamera = false;
+            dragStartX = event.clientX - translateX;
+            dragStartY = event.clientY - translateY;
+            pointerStartX = event.clientX;
+            pointerStartY = event.clientY;
+        });
+
+        window.addEventListener("mousemove", event => {
+            if (!isDragging) return;
+            translateX = event.clientX - dragStartX;
+            translateY = event.clientY - dragStartY;
+            isMovingCamera = Math.hypot(event.clientX - pointerStartX, event.clientY - pointerStartY) > 4;
+            updateTransform();
+        });
+
+        window.addEventListener("mouseup", () => {
+            isDragging = false;
+            setTimeout(() => { isMovingCamera = false; }, 0);
+        });
+
+        svg.addEventListener("touchstart", event => {
+            if (event.target.closest(".person-node")) return;
+
+            if (event.touches.length === 1) {
+                isDragging = true;
+                isMovingCamera = false;
+                lastTouchX = event.touches[0].clientX;
+                lastTouchY = event.touches[0].clientY;
+                pointerStartX = lastTouchX;
+                pointerStartY = lastTouchY;
+            } else if (event.touches.length === 2) {
+                isDragging = false;
+                initialPinchDistance = getPinchDistance(event.touches);
+                initialZoom = zoomLevel;
+            }
+        }, { passive: false });
+
+        svg.addEventListener("touchmove", event => {
+            if ((event.touches.length === 1 && isDragging) || event.touches.length === 2) {
+                event.preventDefault();
+            }
+
+            if (isDragging && event.touches.length === 1) {
+                const touch = event.touches[0];
+                translateX += touch.clientX - lastTouchX;
+                translateY += touch.clientY - lastTouchY;
+                isMovingCamera = Math.hypot(touch.clientX - pointerStartX, touch.clientY - pointerStartY) > 6;
+                lastTouchX = touch.clientX;
+                lastTouchY = touch.clientY;
+                updateTransform();
+            } else if (event.touches.length === 2 && initialPinchDistance) {
+                setZoom(initialZoom * (getPinchDistance(event.touches) / initialPinchDistance));
+            }
+        }, { passive: false });
+
+        svg.addEventListener("touchend", event => {
+            if (event.touches.length < 2) initialPinchDistance = null;
+            if (event.touches.length === 0) {
+                isDragging = false;
+                setTimeout(() => { isMovingCamera = false; }, 0);
+            }
+        });
+    }
+
+    function initProfileModal() {
+        getEl("closeFullProfile").addEventListener("click", () => getEl("fullProfileModal").classList.add("hidden"));
+        getEl("closeModalBtn").addEventListener("click", closeRelationModal);
+
+        getEl("profileModal").addEventListener("click", event => {
+            if (event.target.id === "profileModal") closeRelationModal();
+        });
+
+        getEl("fullProfileModal").addEventListener("click", event => {
+            if (event.target.id === "fullProfileModal") getEl("fullProfileModal").classList.add("hidden");
+        });
+
+        getEl("openFullProfileBtn").addEventListener("click", openFullProfile);
+
+        getEl("personNameInput").addEventListener("change", event => {
+            const person = graph.getPerson(graph.getFocus());
+            if (!person) return;
+            person.name = event.target.value.trim() || "Без имени";
+            saveGraph();
+            render(false);
+        });
+    }
+
+    function getPinchDistance(touches) {
+        return Math.hypot(
+            touches[0].clientX - touches[1].clientX,
+            touches[0].clientY - touches[1].clientY
+        );
+    }
+
+    function setZoom(value) {
+        zoomLevel = Math.min(3, Math.max(0.25, value));
+        updateTransform();
+    }
+
+    function updateTransform() {
+        scene.setAttribute("transform", `translate(${translateX}, ${translateY}) scale(${zoomLevel})`);
+    }
+
+    function selectPerson(id, autoCenter = false) {
+        if (!id) return;
+        graph.setFocus(id);
+        const person = graph.getPerson(id);
+        if (!person) return;
+
+        getEl("profileModal").classList.add("hidden");
+        getEl("fullProfileModal").classList.add("hidden");
+        getEl("searchResults").classList.add("hidden");
+
+        getEl("personPanel").classList.remove("hidden");
+        getEl("panelAvatar").src = person.photo || DEFAULT_AVATAR;
+        getEl("personNameInput").value = person.name || "";
+        getEl("quickBirth").value = person.birthDate || "—";
+        getEl("quickDeath").value = person.isAlive !== false && !person.deathDate ? "Жив(а)" : (person.deathDate || "—");
+
+        getEl("addParent").onclick = () => {
+            if (person.parents.size >= 2) {
+                showCustomAlert("У этого человека уже указаны оба родителя.");
+                return;
+            }
+            openRelationModal("Добавить родителя", relatedId => {
+                if (graph.addParent(id, relatedId)) {
+                    saveGraph();
+                    render(true);
+                }
+            }, id);
+        };
+
+        getEl("addSpouse").onclick = () => {
+            openRelationModal("Добавить супруга(у)", relatedId => {
+                if (graph.addSpouse(id, relatedId)) {
+                    saveGraph();
+                    render(true);
+                }
+            }, id);
+        };
+
+        getEl("addChild").onclick = () => {
+            openRelationModal("Добавить ребенка", relatedId => {
+                if (graph.addParent(relatedId, id)) {
+                    saveGraph();
+                    render(true);
+                }
+            }, id);
+        };
+
+        saveGraph();
+        render(autoCenter);
+    }
+
     function render(autoCenter) {
-        scene.innerHTML = "";
+        scene.textContent = "";
+
         let focusId = graph.getFocus();
-        
-        if (!focusId && graph.people.size > 0) focusId = graph.people.keys().next().value;
-        if (!focusId) return;
+        if (!focusId && graph.people.size) {
+            focusId = graph.people.keys().next().value;
+            graph.setFocus(focusId);
+        }
+
+        if (!focusId) {
+            updateTransform();
+            return;
+        }
 
         const coords = {};
         const levels = {};
         const visited = new Set();
-        const queue = [{ id: focusId, l: 0 }];
+        const queue = [{ id: focusId, level: 0 }];
 
-        while (queue.length > 0) {
-            const { id, l } = queue.shift();
+        while (queue.length) {
+            const { id, level } = queue.shift();
             if (visited.has(id)) continue;
             visited.add(id);
-            if (!levels[l]) levels[l] = [];
-            levels[l].push(id);
-            const p = graph.getPerson(id);
-            if (p) {
-                p.parents.forEach(pid => queue.push({ id: pid, l: l - 1 }));
-                p.children.forEach(cid => queue.push({ id: cid, l: l + 1 }));
-                p.spouses.forEach(sid => queue.push({ id: sid, l }));
-            }
+            if (!levels[level]) levels[level] = [];
+            levels[level].push(id);
+
+            const person = graph.getPerson(id);
+            if (!person) continue;
+            person.parents.forEach(parentId => queue.push({ id: parentId, level: level - 1 }));
+            person.children.forEach(childId => queue.push({ id: childId, level: level + 1 }));
+            person.spouses.forEach(spouseId => queue.push({ id: spouseId, level }));
         }
 
-        Object.keys(levels).forEach(l => {
-            levels[l].forEach((id, i) => {
-                coords[id] = { x: i * 280 - (levels[l].length * 140 / 2), y: l * 220 };
+        const horizontalGap = window.innerWidth < 768 ? 210 : 280;
+        const verticalGap = window.innerWidth < 768 ? 180 : 220;
+
+        Object.keys(levels).forEach(level => {
+            const people = levels[level];
+            people.forEach((id, index) => {
+                coords[id] = {
+                    x: index * horizontalGap - ((people.length - 1) * horizontalGap) / 2,
+                    y: Number(level) * verticalGap
+                };
             });
         });
 
         visited.forEach(id => {
-            const p = graph.getPerson(id);
+            const person = graph.getPerson(id);
             const pos = coords[id];
-            p.children.forEach(cid => {
-                if (coords[cid]) {
-                    const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    line.setAttribute("d", `M ${pos.x} ${pos.y} C ${pos.x} ${pos.y + 100}, ${coords[cid].x} ${coords[cid].y - 100}, ${coords[cid].x} ${coords[cid].y}`);
-                    line.setAttribute("class", "link");
-                    scene.appendChild(line);
-                }
+            if (!person || !pos) return;
+
+            person.children.forEach(childId => {
+                if (coords[childId]) drawPath(pos, coords[childId], "link");
             });
-            p.spouses.forEach(sid => {
-                if (coords[sid] && id < sid) { 
-                    const midX = (pos.x + coords[sid].x) / 2;
-                    const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    line.setAttribute("d", `M ${pos.x} ${pos.y} Q ${midX} ${pos.y - 80} ${coords[sid].x} ${coords[sid].y}`);
-                    line.setAttribute("class", "spouse-link");
-                    line.style.cssText = "stroke: var(--accent); stroke-width: 3; stroke-dasharray: 8,8; fill: none;";
-                    scene.appendChild(line);
-                }
+
+            person.spouses.forEach(spouseId => {
+                if (coords[spouseId] && id < spouseId) drawSpousePath(pos, coords[spouseId]);
             });
         });
 
         visited.forEach(id => {
-            const p = graph.getPerson(id);
+            const person = graph.getPerson(id);
             const pos = coords[id];
-            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            g.setAttribute("class", `person-node ${id === focusId ? "focused" : ""}`);
-            g.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
-            g.innerHTML = `
-                <circle r="45" class="node-bg" fill="white" filter="drop-shadow(0 4px 8px rgba(0,0,0,0.1))"/>
-                <image href="${p.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" x="-40" y="-40" width="80" height="80" clip-path="circle(40px)"/>
-                <rect x="-60" y="38" width="120" height="24" rx="12" fill="white" opacity="0.9"/>
-                <text y="54" text-anchor="middle" font-size="12px" font-weight="900" fill="var(--text)">${p.name}</text>
-            `;
-            g.onclick = (e) => {
-                e.stopPropagation();
-                if (isMovingCamera) return;
-                selectPerson(id);
-            };
-            scene.appendChild(g);
+            if (!person || !pos) return;
+            scene.appendChild(createNode(id, person, pos, id === focusId));
         });
 
         if (autoCenter && coords[focusId]) {
             translateX = window.innerWidth / 2 - coords[focusId].x * zoomLevel;
             translateY = window.innerHeight / 2 - coords[focusId].y * zoomLevel;
         }
+
         updateTransform();
     }
 
-    // =========================================
-    // 📋 ПОЛНАЯ АНКЕТА
-    // =========================================
-    getEl("openFullProfileBtn").onclick = () => {
+    function drawPath(from, to, className) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M ${from.x} ${from.y} C ${from.x} ${from.y + 90}, ${to.x} ${to.y - 90}, ${to.x} ${to.y}`);
+        path.setAttribute("class", className);
+        scene.appendChild(path);
+    }
+
+    function drawSpousePath(from, to) {
+        const midX = (from.x + to.x) / 2;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M ${from.x} ${from.y} Q ${midX} ${from.y - 70} ${to.x} ${to.y}`);
+        path.setAttribute("class", "spouse-link");
+        scene.appendChild(path);
+    }
+
+    function createNode(id, person, pos, focused) {
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("class", `person-node${focused ? " focused" : ""}`);
+        group.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
+        group.dataset.id = id;
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", "45");
+        circle.setAttribute("class", "node-bg");
+
+        const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        image.setAttribute("href", person.photo || DEFAULT_AVATAR);
+        image.setAttribute("x", "-40");
+        image.setAttribute("y", "-40");
+        image.setAttribute("width", "80");
+        image.setAttribute("height", "80");
+        image.setAttribute("clip-path", "circle(40px)");
+
+        const labelBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        labelBg.setAttribute("x", "-70");
+        labelBg.setAttribute("y", "38");
+        labelBg.setAttribute("width", "140");
+        labelBg.setAttribute("height", "28");
+        labelBg.setAttribute("rx", "14");
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("y", "56");
+        label.setAttribute("text-anchor", "middle");
+        label.textContent = shortenName(person.name);
+
+        group.append(circle, image, labelBg, label);
+        group.addEventListener("click", event => {
+            event.stopPropagation();
+            if (!isMovingCamera) selectPerson(id);
+        });
+        return group;
+    }
+
+    function shortenName(name) {
+        return (name || "Без имени").length > 20 ? `${name.slice(0, 19)}…` : name;
+    }
+
+    function openFullProfile() {
         const id = graph.getFocus();
-        if (!id) return;
-        const p = graph.getPerson(id);
-        
-        getEl("fName").value = p.name || "";
-        getEl("fMaidenName").value = p.maidenName || "";
-        getEl("modalAvatarPreview").src = p.photo || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-        
-        getEl("fBirth").value = p.birthDate || "";
-        getEl("fDeath").value = p.deathDate || "";
-        
-        getEl("fBirthPlace").value = p.birthPlace || "";
-        getEl("fDeathPlace").value = p.deathPlace || "";
-        getEl("fLiving").value = p.livingPlaces || "";
-        getEl("fEdu").value = p.education || "";
-        getEl("fProf").value = p.profession || "";
-        getEl("fBurial").value = p.burialPlace || "";
-        getEl("fBio").value = p.bio || "";
+        const person = graph.getPerson(id);
+        if (!person) return;
+
+        getEl("fName").value = person.name || "";
+        getEl("fMaidenName").value = person.maidenName || "";
+        getEl("modalAvatarPreview").src = person.photo || DEFAULT_AVATAR;
+        getEl("fBirth").value = person.birthDate || "";
+        getEl("fDeath").value = person.deathDate || "";
+        getEl("fBirthPlace").value = person.birthPlace || "";
+        getEl("fDeathPlace").value = person.deathPlace || "";
+        getEl("fLiving").value = person.livingPlaces || "";
+        getEl("fEdu").value = person.education || "";
+        getEl("fProf").value = person.profession || "";
+        getEl("fBurial").value = person.burialPlace || "";
+        getEl("fBio").value = person.bio || "";
+
+        const aliveToggle = getEl("fIsAlive");
+        const deathInput = getEl("fDeath");
+        aliveToggle.checked = person.isAlive !== false;
+        updateDeathInput(aliveToggle.checked, deathInput);
+
+        aliveToggle.onchange = () => {
+            if (aliveToggle.checked) deathPicker.clear();
+            updateDeathInput(aliveToggle.checked, deathInput);
+        };
 
         const avatarPreview = getEl("modalAvatarPreview");
-        const photoUpload = getEl("uploadPhoto"); 
-        const avatarContainer = getEl("modalAvatarContainer");
+        const photoUpload = getEl("uploadPhoto");
+        getEl("modalAvatarContainer").onclick = event => {
+            if (!event.target.closest(".upload-badge")) photoUpload.click();
+        };
 
-        avatarPreview.src = p.photo || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-
-        if (avatarContainer) {
-            avatarContainer.onclick = () => {
-                photoUpload.click();
-            };
-        }
-
-        photoUpload.onchange = (e) => {
-            const file = e.target.files[0];
+        photoUpload.onchange = event => {
+            const file = event.target.files[0];
             if (!file) return;
-
+            if (file.size > 750 * 1024) {
+                showCustomAlert("Лучше выбрать фото до 750 КБ, иначе браузер может не сохранить дерево.");
+            }
             const reader = new FileReader();
-            reader.onload = (readerEvent) => {
-                const base64Photo = readerEvent.target.result;
-                avatarPreview.src = base64Photo; 
-                p.photo = base64Photo; 
+            reader.onload = readerEvent => {
+                avatarPreview.src = readerEvent.target.result;
+                person.photo = readerEvent.target.result;
+                saveGraph();
+                render(false);
             };
             reader.readAsDataURL(file);
         };
 
-        const aliveToggle = getEl("fIsAlive");
-        const deathInput = getEl("fDeath");
-        aliveToggle.checked = p.isAlive !== false;
-        
-        if (aliveToggle.checked) {
-            if(deathPicker._input) deathPicker._input.disabled = true;
-            deathInput.style.opacity = "0.5";
-        } else {
-            if(deathPicker._input) deathPicker._input.disabled = false;
-            deathInput.style.opacity = "1";
-        }
+        getEl("saveProfileBtn").onclick = () => {
+            person.name = getEl("fName").value.trim() || "Без имени";
+            person.maidenName = getEl("fMaidenName").value.trim();
+            person.birthDate = getEl("fBirth").value.trim();
+            person.isAlive = aliveToggle.checked;
+            person.deathDate = person.isAlive ? "" : getEl("fDeath").value.trim();
+            person.birthPlace = getEl("fBirthPlace").value.trim();
+            person.deathPlace = getEl("fDeathPlace").value.trim();
+            person.livingPlaces = getEl("fLiving").value.trim();
+            person.education = getEl("fEdu").value.trim();
+            person.profession = getEl("fProf").value.trim();
+            person.burialPlace = getEl("fBurial").value.trim();
+            person.bio = getEl("fBio").value.trim();
 
-        aliveToggle.onchange = (e) => {
-            if (e.target.checked) {
-                deathPicker.clear();
-                if(deathPicker._input) deathPicker._input.disabled = true;
-                deathInput.style.opacity = "0.5";
-            } else {
-                if(deathPicker._input) deathPicker._input.disabled = false;
-                deathInput.style.opacity = "1";
-            }
+            saveGraph();
+            getEl("fullProfileModal").classList.add("hidden");
+            selectPerson(id);
         };
 
         getEl("fullProfileModal").classList.remove("hidden");
-
-        getEl("saveProfileBtn").onclick = (e) => {
-            e.preventDefault();
-            p.name = getEl("fName").value;
-            p.maidenName = getEl("fMaidenName").value;
-            p.birthDate = getEl("fBirth").value;
-            p.isAlive = aliveToggle.checked;
-            p.deathDate = p.isAlive ? "" : getEl("fDeath").value;
-            p.birthPlace = getEl("fBirthPlace").value;
-            p.deathPlace = getEl("fDeathPlace").value;
-            p.livingPlaces = getEl("fLiving").value;
-            p.education = getEl("fEdu").value;
-            p.profession = getEl("fProf").value;
-            p.burialPlace = getEl("fBurial").value;
-            p.bio = getEl("fBio").value;
-
-            getEl("fullProfileModal").classList.add("hidden");
-            selectPerson(id);
-            render(false);
-        };
-    };
-
-    const closeBtn = getEl("closeFullProfile");
-    if (closeBtn) {
-        closeBtn.onclick = () => getEl("fullProfileModal").classList.add("hidden");
     }
 
-    // =========================================
-    // 🛠 МОДАЛКИ СОЗДАНИЯ РОДСТВЕННИКОВ
-    // =========================================
-    function openModal(title, action) {
-        closeAllUI();
+    function updateDeathInput(isAlive, deathInput) {
+        deathInput.disabled = isAlive;
+        deathInput.style.opacity = isAlive ? "0.5" : "1";
+        if (deathPicker && deathPicker._input) deathPicker._input.disabled = isAlive;
+    }
+
+    function openRelationModal(title, action, currentId = null) {
+        getEl("personPanel").classList.add("hidden");
         getEl("modalTitle").textContent = title;
         getEl("newPersonName").value = "";
-        const list = getEl("existingList");
-        list.innerHTML = "";
 
-        graph.people.forEach((p, pId) => {
-            const btn = document.createElement("button");
-            btn.className = "glass-btn wide";
-            btn.style.marginBottom = "10px";
-            btn.textContent = p.name;
-            btn.onclick = (e) => { e.stopPropagation(); action(pId); closeModal(); };
-            list.appendChild(btn);
+        const list = getEl("existingList");
+        list.textContent = "";
+
+        graph.people.forEach((person, id) => {
+            if (id === currentId) return;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "glass-btn wide";
+            button.textContent = person.name;
+            button.onclick = () => {
+                action(id);
+                closeRelationModal();
+            };
+            list.appendChild(button);
         });
 
-        const submitBtn = getEl("submitModalBtn");
-        submitBtn.onclick = (e) => {
-            e.preventDefault();
+        getEl("submitModalBtn").onclick = () => {
             const name = getEl("newPersonName").value.trim();
-            if (name) {
-                const id = graph.createPerson({ name });
-                action(id); 
-                closeModal();
-                selectPerson(id);
-                render(true); 
-            } else {
-                showCustomAlert("Введите имя");
+            if (!name) {
+                showCustomAlert("Введите имя.");
+                return;
             }
+            const id = graph.createPerson({ name });
+            action(id);
+            closeRelationModal();
+            selectPerson(id, true);
         };
-        if(modal) modal.classList.remove("hidden");
+
+        getEl("profileModal").classList.remove("hidden");
     }
-    
-    // ОДНА четкая функция закрытия
-function closeModal() {
-    const modal = document.getElementById("profileModal");
-    if (modal) {
-        modal.classList.add("hidden");
-        // Очищаем поле ввода, чтобы при следующем открытии оно было пустым
-        const input = document.getElementById("newPersonName");
-        if (input) input.value = "";
+
+    function closeRelationModal() {
+        getEl("profileModal").classList.add("hidden");
+        getEl("newPersonName").value = "";
     }
-}
 
-// Привязываем событие кнопке "Отмена"
-const cancelBtn = document.getElementById("closeModalBtn");
-if (cancelBtn) {
-    cancelBtn.onclick = (e) => {
-        e.preventDefault(); // Чтобы кнопка не пыталась отправить форму
-        closeModal();
-    };
-}
-
-// Также закрываем модалку, если кликнули МИМО карточки (по оверлею)
-const modalOverlay = document.getElementById("profileModal");
-if (modalOverlay) {
-    modalOverlay.onclick = (e) => {
-        if (e.target === modalOverlay) {
-            closeModal();
+    function exportPng() {
+        if (!graph.people.size) {
+            showCustomAlert("Сначала добавь хотя бы одного человека.");
+            return;
         }
-    };
-}
-    
-    // =========================================
-    // 🖱 КАМЕРА И МЫШЬ
-    // =========================================
-    function updateTransform() { scene.setAttribute("transform", `translate(${translateX}, ${translateY}) scale(${zoomLevel})`); }
-    svg.onwheel = e => { e.preventDefault(); zoomLevel *= e.deltaY < 0 ? 1.1 : 0.9; updateTransform(); };
-    svg.onmousedown = e => { if (e.target.closest(".person-node")) return; isDragging = true; sX = e.clientX - translateX; sY = e.clientY - translateY; };
-    window.onmousemove = e => { if (!isDragging) return; translateX = e.clientX - sX; translateY = e.clientY - sY; updateTransform(); };
-    window.onmouseup = () => isDragging = false;
 
-    getEl("createPersonBtn").onclick = () => openModal("Основатель рода", id => selectPerson(id));
+        const btn = getEl("exportBtn");
+        const originalText = btn.textContent;
+        btn.textContent = "Сохраняю...";
+        btn.disabled = true;
 
-    updateTransform();
+        try {
+            const bbox = scene.getBBox();
+            const padding = 70;
+            const width = Math.max(320, Math.ceil(bbox.width + padding * 2));
+            const height = Math.max(320, Math.ceil(bbox.height + padding * 2));
+            const style = getComputedStyle(document.documentElement);
+            const bg = style.getPropertyValue("--bg").trim() || "#e6e9ef";
 
-    // =========================================
-    // 📱 ТАЧ-УПРАВЛЕНИЕ И МОБИЛЬНЫЙ ЗУМ
-    // =========================================
-    let lastTouchX = 0, lastTouchY = 0;
-    let initialPinchDistance = null;
-    let initialZoom = 1;
+            const svgClone = svg.cloneNode(true);
+            svgClone.setAttribute("width", width);
+            svgClone.setAttribute("height", height);
+            svgClone.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            svgClone.querySelector("#scene").setAttribute("transform", `translate(${-bbox.x + padding}, ${-bbox.y + padding})`);
 
-    // Подключаем кнопки + и -
-    const btnZoomIn = getEl('zoomInBtn');
-    const btnZoomOut = getEl('zoomOutBtn');
-    
-    if (btnZoomIn) btnZoomIn.onclick = () => { zoomLevel *= 1.2; updateTransform(); };
-    if (btnZoomOut) btnZoomOut.onclick = () => { zoomLevel *= 0.8; updateTransform(); };
+            const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
+            styleElement.textContent = getExportStyles();
+            svgClone.insertBefore(styleElement, svgClone.firstChild);
 
-    // Обработка касаний экрана
-    svg.addEventListener('touchstart', e => {
-        if (e.target.closest(".person-node")) return; 
-        
-        if (e.touches.length === 1) {
-            // Один палец - таскаем холст
-            isDragging = true;
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-        } else if (e.touches.length === 2) {
-            // Два пальца - готовимся зумить
-            isDragging = false; 
-            // Вычисляем расстояние между двумя пальцами
-            initialPinchDistance = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-            initialZoom = zoomLevel;
+            const svgData = new XMLSerializer().serializeToString(svgClone);
+            const image = new Image();
+            image.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(image, 0, 0);
+
+                const link = document.createElement("a");
+                link.download = `Shedjere-${Date.now()}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                btn.textContent = originalText;
+                btn.disabled = false;
+            };
+            image.onerror = () => {
+                showCustomAlert("Не получилось экспортировать PNG.");
+                btn.textContent = originalText;
+                btn.disabled = false;
+            };
+            image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
+        } catch (error) {
+            showCustomAlert("Не получилось экспортировать PNG.");
+            btn.textContent = originalText;
+            btn.disabled = false;
         }
-    }, { passive: false });
-
-    svg.addEventListener('touchmove', e => {
-        // Блокируем стандартный скролл страницы при возне с деревом
-        if (e.touches.length === 1 && isDragging || e.touches.length === 2) {
-            e.preventDefault(); 
-        }
-        
-        if (isDragging && e.touches.length === 1) {
-            // Двигаем холст одним пальцем
-            translateX += e.touches[0].clientX - lastTouchX;
-            translateY += e.touches[0].clientY - lastTouchY;
-            
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-            
-            updateTransform();
-        } else if (e.touches.length === 2 && initialPinchDistance) {
-            // Зумим двумя пальцами
-            const currentDistance = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-            
-            const pinchRatio = currentDistance / initialPinchDistance;
-            zoomLevel = initialZoom * pinchRatio;
-            
-            // Ограничиваем зум, чтобы дерево не исчезло в пикселях
-            if (zoomLevel < 0.2) zoomLevel = 0.2;
-            if (zoomLevel > 3) zoomLevel = 3;
-            
-            updateTransform();
-        }
-    }, { passive: false });
-
-    svg.addEventListener('touchend', e => {
-        if (e.touches.length < 2) initialPinchDistance = null; // Сброс зума
-        if (e.touches.length === 0) isDragging = false; // Сброс перемещения
-    });
-// Закрытие модального окна по клику на темный фон
-document.getElementById("profileModal").addEventListener("click", (e) => {
-    // Проверяем, что кликнули именно на фон, а не на само белое окно
-    if (e.target.id === "profileModal") {
-        closeAllUI(); // Вызываем твою функцию закрытия всего
     }
-});
-    
+
+    function getExportStyles() {
+        const style = getComputedStyle(document.documentElement);
+        const text = style.getPropertyValue("--text").trim() || "#2d3047";
+        const accent = style.getPropertyValue("--accent").trim() || "#5542ff";
+        const card = style.getPropertyValue("--white").trim() || "#ffffff";
+
+        return `
+            .link { fill:none; stroke:${text}; stroke-width:2.5; opacity:.35; }
+            .spouse-link { fill:none; stroke:${accent}; stroke-width:3; stroke-dasharray:8 8; }
+            .person-node circle { fill:${card}; stroke:${accent}; stroke-width:1; }
+            .person-node rect { fill:${card}; opacity:.92; }
+            .person-node text { font-family:Inter, Arial, sans-serif; font-weight:900; fill:${text}; font-size:12px; }
+        `;
+    }
 });

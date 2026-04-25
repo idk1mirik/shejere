@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
         admin: "mir67",
         viewer: "guests123"
     };
+    const REMOTE_AUTH_CONFIG = window.SHEDJERE_AUTH || null;
 
     const graph = new FamilyGraph();
     const scene = document.getElementById("scene");
@@ -25,14 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
         ru: {
             pageTitle: "Моё Шежере | Soft Heritage",
             brandKicker: "Family archive",
-            tagline: "Семейная память в живом дереве",
+            tagline: "Семейная память в живом древе",
             searchPlaceholder: "Найти человека...",
             exportPng: "Скачать PNG",
             createPerson: "Добавить человека",
             emptyKicker: "Family archive",
-            emptyTitle: "Здесь появится ваше родословное дерево",
+            emptyTitle: "Здесь появится ваше родословное древо",
             emptyText: "Начните с одного человека, а потом спокойно добавляйте родителей, супругов и детей.",
-            focusTree: "Показать центр дерева",
+            focusTree: "Показать центр древа",
             personNamePlaceholder: "Имя Фамилия",
             birthShort: "Рождение",
             deathShort: "Смерть",
@@ -76,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
             storyPlaceholder: "Здесь можно хранить семейную историю, характерные факты и память о человеке.",
             lifeHighlights: "Коротко",
             saveError: "Не удалось сохранить данные. Возможно, фото слишком большое.",
-            chooseSmallerPhoto: "Лучше выбрать фото до 750 КБ, иначе браузер может не сохранить дерево.",
+            chooseSmallerPhoto: "Лучше выбрать фото до 750 КБ, иначе браузер может не сохранить древо.",
             parentLimit: "У этого человека уже указаны оба родителя.",
             enterName: "Введи имя.",
             addFirstPerson: "Сначала добавь хотя бы одного человека.",
@@ -87,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
             themeWarm: "Теплая",
             themeForest: "Лесная",
             accessKicker: "Family archive",
-            accessTitle: "Вход в семейное дерево",
+            accessTitle: "Вход в семейное древо",
             accessText: "Введите код, чтобы открыть режим редактирования или гостевой просмотр.",
             accessLabel: "Код доступа",
             accessPlaceholder: "Введите код",
@@ -100,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
             accessViewerReady: "Гостевой режим активирован.",
             switchMode: "Сменить режим",
             modeLabel: "Режим",
-            treeLabel: "Дерево",
+            treeLabel: "Древо",
             tipLabel: "Подсказка",
             tipAdmin: "Админ может редактировать карточки и связи",
             tipViewer: "Гости могут смотреть без редактирования",
@@ -116,15 +117,43 @@ document.addEventListener("DOMContentLoaded", () => {
             diedLabel: "Ушел(а)",
             roleAdmin: "ADMIN",
             roleViewer: "VIEWER",
-            openTreeMode: "К дереву",
+            openTreeMode: "К древу",
             howItWorks: "Как это работает",
             backToMenu: "Меню",
-            viewerGuideTitle: "Как смотреть дерево",
+            viewerGuideTitle: "Как смотреть древо",
             viewerGuideText: "Здесь открыт безопасный режим просмотра для родственников без редактирования.",
             viewerGuidePoint1: "Нажмите на карточку человека, чтобы открыть профиль и историю.",
-            viewerGuidePoint2: "Кнопка «К дереву» на телефоне прячет верхнюю панель и оставляет чистый просмотр.",
+            viewerGuidePoint2: "Кнопка «К древу» на телефоне прячет верхнюю панель и оставляет чистый просмотр.",
             viewerGuidePoint3: "Можно искать людей, менять язык, тему и масштаб, не боясь что-то испортить.",
-            viewerGuideCta: "Понятно"
+            viewerGuideCta: "Понятно",
+            bioLanguageHint: "Заполняйте только нужные языки: пустые вкладки автоматически берут текст из доступной версии.",
+            mapPlacesTitle: "Места на карте",
+            mapPlacesHint: "Выберите место ниже, и карта откроется прямо в анкете.",
+            mapPlacesEmpty: "Пока нет мест, которые можно открыть на карте.",
+            openOnMap: "Открыть на карте",
+            showOnMap: "Показать на карте",
+            authRemoteHint: "Можно подключить серверную проверку кода через auth-config.js.",
+            familyStory: "История рода",
+            familyStoryText: "Короткий обзор по людям, фамилиям, местам и незаполненным данным.",
+            timelineLabel: "Хронология жизни",
+            timelineHint: "По одному событию на строку: рождение, переезд, учёба, брак, служба и так далее.",
+            mediaLinksLabel: "Фото и документы",
+            mediaLinksHint: "Вставляйте ссылки по одной на строку: фото, видео, документы, аудио.",
+            mediaLinksEmpty: "Ссылки на фото и документы пока не добавлены.",
+            marriageDateLabel: "Дата бракосочетания",
+            marriagePlaceLabel: "Место бракосочетания",
+            photoAlbumLabel: "Фотоальбом",
+            photoAlbumHint: "Фотографии хранятся прямо в анкете. Лучше загружать изображения до 700 КБ.",
+            addPhotos: "Добавить фото",
+            photoAlbumEmpty: "Фотографии пока не добавлены.",
+            removePhoto: "Удалить",
+            summarySurnames: "Фамилии",
+            summaryPlaces: "Ключевые места",
+            summaryGaps: "Нужно заполнить",
+            summaryTimeline: "Хронология",
+            summaryMedia: "Материалы",
+            incompleteBadge: "неполно",
+            noDataYet: "Пока данных мало, но основа уже собрана."
         },
         uz: {
             pageTitle: "Mening Shejerem | Soft Heritage",
@@ -228,7 +257,35 @@ document.addEventListener("DOMContentLoaded", () => {
             viewerGuidePoint1: "Kartochkani bosing, profil va hikoyani ochasiz.",
             viewerGuidePoint2: "Telefonda «Daraxtga» tugmasi yuqori panelni yashirib, toza ko'rinish qoldiradi.",
             viewerGuidePoint3: "Odamlarni qidirish, tilni, mavzuni va masshtabni xavfsiz o'zgartirish mumkin.",
-            viewerGuideCta: "Tushunarli"
+            viewerGuideCta: "Tushunarli",
+            bioLanguageHint: "Har bir til alohida saqlanadi: RU matni UZ yoki EN maydoniga o'tmaydi.",
+            mapPlacesTitle: "Xaritadagi joylar",
+            mapPlacesHint: "Quyidagi joylardan birini tanlang, xarita anketaning ichida ochiladi.",
+            mapPlacesEmpty: "Xaritada ko'rsatish uchun hali joylar yo'q.",
+            openOnMap: "Xaritada ochish",
+            showOnMap: "Xaritada ko'rsatish",
+            authRemoteHint: "Server tomondagi kod tekshiruvini auth-config.js orqali ulash mumkin.",
+            familyStory: "Urug' hikoyasi",
+            familyStoryText: "Odamlar, familiyalar, joylar va to'ldirilmagan ma'lumotlar bo'yicha qisqa ko'rinish.",
+            timelineLabel: "Hayot xronologiyasi",
+            timelineHint: "Har satrga bitta voqea yozing: tug'ilish, ko'chish, o'qish, nikoh, xizmat va boshqalar.",
+            mediaLinksLabel: "Foto va hujjatlar",
+            mediaLinksHint: "Har satrga bittadan havola qo'ying: foto, video, hujjat yoki audio.",
+            mediaLinksEmpty: "Foto va hujjatlarga havolalar hali qo'shilmagan.",
+            marriageDateLabel: "Nikoh sanasi",
+            marriagePlaceLabel: "Nikoh joyi",
+            photoAlbumLabel: "Fotoalbom",
+            photoAlbumHint: "Suratlar anketaning o'zida saqlanadi. 700 KB gacha bo'lgan fayllar yaxshiroq.",
+            addPhotos: "Surat qo'shish",
+            photoAlbumEmpty: "Suratlar hali qo'shilmagan.",
+            removePhoto: "O'chirish",
+            summarySurnames: "Familiyalar",
+            summaryPlaces: "Asosiy joylar",
+            summaryGaps: "To'ldirish kerak",
+            summaryTimeline: "Xronologiya",
+            summaryMedia: "Materiallar",
+            incompleteBadge: "to'liq emas",
+            noDataYet: "Hozircha ma'lumot kam, ammo asos tayyor."
         },
         en: {
             pageTitle: "My Family Tree | Soft Heritage",
@@ -332,7 +389,35 @@ document.addEventListener("DOMContentLoaded", () => {
             viewerGuidePoint1: "Tap a person card to open the profile and story.",
             viewerGuidePoint2: "On phones, the “To tree” button hides the top panel for a cleaner view.",
             viewerGuidePoint3: "You can search people, change language, theme and zoom without risking any edits.",
-            viewerGuideCta: "Got it"
+            viewerGuideCta: "Got it",
+            bioLanguageHint: "Each language is stored separately: RU text does not overwrite UZ or EN.",
+            mapPlacesTitle: "Places on the map",
+            mapPlacesHint: "Pick a place below and the map will open inside the profile.",
+            mapPlacesEmpty: "There are no places to display on the map yet.",
+            openOnMap: "Open on map",
+            showOnMap: "Show on map",
+            authRemoteHint: "You can connect server-side code validation through auth-config.js.",
+            familyStory: "Family story",
+            familyStoryText: "A short overview of people, surnames, places and missing details.",
+            timelineLabel: "Life timeline",
+            timelineHint: "One event per line: birth, move, studies, marriage, service and so on.",
+            mediaLinksLabel: "Photos and documents",
+            mediaLinksHint: "Paste one link per line: photo, video, document or audio.",
+            mediaLinksEmpty: "No photo or document links have been added yet.",
+            marriageDateLabel: "Marriage date",
+            marriagePlaceLabel: "Marriage place",
+            photoAlbumLabel: "Photo album",
+            photoAlbumHint: "Photos are stored directly in the profile. Images under 700 KB work best.",
+            addPhotos: "Add photos",
+            photoAlbumEmpty: "No photos added yet.",
+            removePhoto: "Remove",
+            summarySurnames: "Surnames",
+            summaryPlaces: "Key places",
+            summaryGaps: "Needs filling",
+            summaryTimeline: "Timeline",
+            summaryMedia: "Materials",
+            incompleteBadge: "incomplete",
+            noDataYet: "There is not much data yet, but the foundation is already here."
         }
     };
 
@@ -362,7 +447,10 @@ document.addEventListener("DOMContentLoaded", () => {
         theme: "default",
         mode: null,
         pendingMode: "viewer",
-        currentModalTitleKey: "newPersonTitle"
+        currentModalTitleKey: "newPersonTitle",
+        profileBioLanguage: "ru",
+        draftDetailsTranslations: null,
+        activeMapQuery: ""
     };
 
     let translateX = window.innerWidth / 2;
@@ -378,9 +466,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastTouchY = 0;
     let initialPinchDistance = null;
     let initialZoom = 1;
+    let suppressNodeSelectionUntil = 0;
 
     const birthPicker = initDatePicker("#fBirth");
     const deathPicker = initDatePicker("#fDeath");
+    const marriagePicker = initDatePicker("#fMarriageDate");
 
     loadGraph();
     loadSettings();
@@ -402,8 +492,186 @@ document.addEventListener("DOMContentLoaded", () => {
         return translations[state.language][key] || translations.ru[key] || key;
     }
 
+    function suppressNodeSelection(duration = 420) {
+        suppressNodeSelectionUntil = Date.now() + duration;
+    }
+
+    function normalizeBioTranslations(value, fallback = "") {
+        const result = { ru: "", uz: "", en: "" };
+        if (value && typeof value === "object") {
+            Object.keys(result).forEach((lang) => {
+                result[lang] = typeof value[lang] === "string" ? value[lang] : "";
+            });
+        }
+        if (!result.ru && fallback) result.ru = fallback;
+        return result;
+    }
+
+    function getLocalizedBio(person, lang = state.language) {
+        const bioTranslations = normalizeBioTranslations(person.bioTranslations, person.bio || "");
+        return bioTranslations[lang] || "";
+    }
+
+    function normalizeDetailsTranslations(value, fallback = {}) {
+        const createLang = () => ({
+            birthPlace: "",
+            deathPlace: "",
+            livingPlaces: "",
+            burialPlace: "",
+            profession: "",
+            education: "",
+            marriagePlace: ""
+        });
+        const result = { ru: createLang(), uz: createLang(), en: createLang() };
+        if (value && typeof value === "object") {
+            Object.keys(result).forEach((lang) => {
+                if (!value[lang] || typeof value[lang] !== "object") return;
+                Object.keys(result[lang]).forEach((field) => {
+                    result[lang][field] = typeof value[lang][field] === "string" ? value[lang][field] : "";
+                });
+            });
+        }
+        Object.keys(result.ru).forEach((field) => {
+            if (!result.ru[field] && typeof fallback[field] === "string") {
+                result.ru[field] = fallback[field];
+            }
+        });
+        return result;
+    }
+
+    function syncCurrentProfileLanguageFields() {
+        if (!state.draftDetailsTranslations) return;
+        state.draftDetailsTranslations[state.profileBioLanguage] = {
+            birthPlace: getEl("fBirthPlace").value.trim(),
+            deathPlace: getEl("fDeathPlace").value.trim(),
+            livingPlaces: getEl("fLiving").value.trim(),
+            burialPlace: getEl("fBurial").value.trim(),
+            profession: getEl("fProf").value.trim(),
+            education: getEl("fEdu").value.trim(),
+            marriagePlace: getEl("fMarriagePlace").value.trim()
+        };
+    }
+
+    function applyProfileLanguageFields(lang) {
+        const details = normalizeDetailsTranslations(state.draftDetailsTranslations || {}, {})[lang];
+        getEl("fBirthPlace").value = details.birthPlace || "";
+        getEl("fDeathPlace").value = details.deathPlace || "";
+        getEl("fLiving").value = details.livingPlaces || "";
+        getEl("fBurial").value = details.burialPlace || "";
+        getEl("fProf").value = details.profession || "";
+        getEl("fEdu").value = details.education || "";
+        getEl("fMarriagePlace").value = details.marriagePlace || "";
+        renderProfileMapPlaces({
+            birthPlace: details.birthPlace,
+            livingPlaces: details.livingPlaces,
+            deathPlace: details.deathPlace,
+            burialPlace: details.burialPlace,
+            marriagePlace: details.marriagePlace
+        });
+    }
+
+    function getLocalizedDetail(person, field, lang = state.language) {
+        const details = normalizeDetailsTranslations(person.detailsTranslations, {
+            birthPlace: person.birthPlace || "",
+            deathPlace: person.deathPlace || "",
+            livingPlaces: person.livingPlaces || "",
+            burialPlace: person.burialPlace || "",
+            profession: person.profession || "",
+            education: person.education || "",
+            marriagePlace: person.marriagePlace || ""
+        });
+        return details[lang]?.[field] || "";
+    }
+
+    function getBioInput(lang) {
+        return document.querySelector(`[data-bio-input="${lang}"]`);
+    }
+
+    function getBioTranslationsFromInputs() {
+        return {
+            ru: getBioInput("ru")?.value.trim() || "",
+            uz: getBioInput("uz")?.value.trim() || "",
+            en: getBioInput("en")?.value.trim() || ""
+        };
+    }
+
+    function setBioTranslationsToInputs(value, fallback = "") {
+        const translationsMap = normalizeBioTranslations(value, fallback);
+        Object.keys(translationsMap).forEach((lang) => {
+            const input = getBioInput(lang);
+            if (input) input.value = translationsMap[lang];
+        });
+    }
+
+    function setActiveBioLanguage(lang) {
+        if (state.profileBioLanguage !== lang) {
+            syncCurrentProfileLanguageFields();
+        }
+        state.profileBioLanguage = ["ru", "uz", "en"].includes(lang) ? lang : "ru";
+        updateBioLanguageButtons();
+        document.querySelectorAll("[data-bio-input]").forEach((node) => {
+            node.classList.toggle("hidden", node.dataset.bioInput !== state.profileBioLanguage);
+        });
+        applyProfileLanguageFields(state.profileBioLanguage);
+    }
+
+    function getRemoteAuthEnabled() {
+        return Boolean(REMOTE_AUTH_CONFIG && REMOTE_AUTH_CONFIG.endpoint);
+    }
+
+    async function resolveAccessMode(code, requestedMode) {
+        if (!getRemoteAuthEnabled()) {
+            const detectedMode = Object.entries(ACCESS_CODES).find(([, value]) => value === code)?.[0];
+            const finalMode = detectedMode || requestedMode;
+            const expectedCode = ACCESS_CODES[finalMode];
+            if (code !== expectedCode) return null;
+            return { mode: finalMode, source: "local" };
+        }
+
+        const controller = new AbortController();
+        const timeoutMs = Number(REMOTE_AUTH_CONFIG.timeoutMs) || 8000;
+        const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+            const response = await fetch(REMOTE_AUTH_CONFIG.endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(REMOTE_AUTH_CONFIG.siteKey ? { "x-site-key": REMOTE_AUTH_CONFIG.siteKey } : {})
+                },
+            body: JSON.stringify({
+                    code,
+                    requestedMode
+                }),
+                signal: controller.signal
+            });
+
+            if (!response.ok) return null;
+            const payload = await response.json();
+            if (!payload || (payload.mode !== "admin" && payload.mode !== "viewer")) return null;
+            return { mode: payload.mode, source: "remote" };
+        } catch (error) {
+            return null;
+        } finally {
+            window.clearTimeout(timeoutId);
+        }
+    }
+
     function isAdminMode() {
         return state.mode === "admin";
+    }
+
+    function getMissingFields(person) {
+        const missing = [];
+        if (!person.birthDate) missing.push(t("birthDateLabel"));
+        if (!person.name) missing.push(t("fullNameLabel"));
+        if (!getLocalizedDetail(person, "birthPlace") && !person.birthDate) {
+            missing.push(t("birthPlaceLabel"));
+        }
+        if (!getLocalizedBio(person)) {
+            missing.push(t("bioLabel"));
+        }
+        return missing;
     }
 
     function initDatePicker(selector) {
@@ -544,9 +812,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function initLanguageSwitcher() {
         document.querySelectorAll(".segment-control").forEach((switcher) => {
+            const guardTap = (event) => {
+                if (!event.target.closest(".segment-btn[data-lang]")) return;
+                event.stopPropagation();
+                suppressNodeSelection();
+            };
+            switcher.addEventListener("pointerdown", guardTap);
+            switcher.addEventListener("touchstart", guardTap, { passive: true });
             switcher.addEventListener("click", (event) => {
                 const button = event.target.closest(".segment-btn[data-lang]");
                 if (!button) return;
+                event.preventDefault();
+                event.stopPropagation();
+                suppressNodeSelection();
                 setLanguage(button.dataset.lang);
             });
         });
@@ -554,11 +832,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setLanguage(lang) {
         if (!translations[lang]) return;
+        suppressNodeSelection();
         state.language = lang;
         animateUiTransition("locale", { x: window.innerWidth * 0.16, y: window.innerHeight * 0.12 });
         document.documentElement.lang = lang;
+        if (!getEl("fullProfileModal").classList.contains("hidden")) {
+            setActiveBioLanguage(lang);
+        }
         applyTranslations();
-        [birthPicker, deathPicker].forEach((picker) => {
+        [birthPicker, deathPicker, marriagePicker].forEach((picker) => {
             if (picker && typeof picker.set === "function") picker.set("locale", getCalendarLocale());
         });
         saveSettings();
@@ -585,6 +867,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function updateBioLanguageButtons() {
+        document.querySelectorAll(".segment-btn[data-bio-lang]").forEach((button) => {
+            button.classList.toggle("active", button.dataset.bioLang === state.profileBioLanguage);
+        });
+    }
+
     function applyTranslations() {
         document.title = t("pageTitle");
         document.querySelectorAll("[data-i18n]").forEach((node) => {
@@ -595,9 +883,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         getEl("modalTitle").textContent = t(state.currentModalTitleKey);
         updateLanguageButtons();
+        updateBioLanguageButtons();
         updateThemeLabels();
+        if (getRemoteAuthEnabled()) {
+            getEl("accessHint").textContent = t("authRemoteHint");
+        }
         updateEmptyState();
         updateFocusPanel();
+        renderProfileMapPlaces(graph.getPerson(graph.getFocus()));
+        if (!getEl("fullProfileModal").classList.contains("hidden")) {
+            setActiveBioLanguage(state.profileBioLanguage);
+        }
         updateModeUi();
         updateTreeStats();
     }
@@ -619,6 +915,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const gate = getEl("accessGate");
         const input = getEl("accessCodeInput");
         const unlockBtn = getEl("unlockBtn");
+        const hint = getEl("accessHint");
+
+        if (hint && getRemoteAuthEnabled()) {
+            hint.textContent = t("authRemoteHint");
+        }
 
         document.querySelectorAll("[data-mode-trigger]").forEach((button) => {
             button.addEventListener("click", () => {
@@ -629,7 +930,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        unlockBtn.addEventListener("click", unlockWithCode);
+        unlockBtn.addEventListener("click", () => {
+            unlockWithCode();
+        });
         input.addEventListener("keydown", (event) => {
             if (event.key === "Enter") unlockWithCode();
         });
@@ -642,25 +945,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function unlockWithCode() {
+    async function unlockWithCode() {
         const input = getEl("accessCodeInput");
+        const unlockBtn = getEl("unlockBtn");
         const code = input.value.trim();
         if (!code) {
             showCustomAlert(t("accessDenied"));
             return;
         }
 
-        const detectedMode = Object.entries(ACCESS_CODES).find(([, value]) => value === code)?.[0];
         const requestedMode = state.pendingMode || "viewer";
-        const finalMode = detectedMode || requestedMode;
-        const expectedCode = ACCESS_CODES[finalMode];
+        unlockBtn.disabled = true;
+        const authResult = await resolveAccessMode(code, requestedMode);
+        unlockBtn.disabled = false;
 
-        if (code !== expectedCode) {
+        if (!authResult) {
             showCustomAlert(t("accessDenied"));
             input.select();
             return;
         }
 
+        const finalMode = authResult.mode;
         state.mode = finalMode;
         state.pendingMode = finalMode;
         persistMode();
@@ -724,13 +1029,22 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const matches = Array.from(graph.people.entries()).filter(([, person]) => {
-                const haystack = [
-                    person.name,
-                    person.maidenName,
-                    person.birthPlace,
-                    person.livingPlaces,
-                    person.bio
-                ].filter(Boolean).map(normalizeSearchText).join(" ");
+            const haystack = [
+                person.name,
+                person.maidenName,
+                person.birthPlace,
+                person.livingPlaces,
+                person.bio,
+                ...Object.values(normalizeBioTranslations(person.bioTranslations, person.bio || ""))
+                    .concat(Object.values(normalizeDetailsTranslations(person.detailsTranslations, {
+                        birthPlace: person.birthPlace || "",
+                        deathPlace: person.deathPlace || "",
+                        livingPlaces: person.livingPlaces || "",
+                        burialPlace: person.burialPlace || "",
+                        profession: person.profession || "",
+                        education: person.education || ""
+                    })).flatMap((entry) => Object.values(entry)))
+            ].filter(Boolean).map(normalizeSearchText).join(" ");
                 return haystack.includes(query);
             });
 
@@ -821,12 +1135,21 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("viewerGuideModal").addEventListener("click", (event) => {
             if (event.target.id === "viewerGuideModal") closeViewerGuide();
         });
+        getEl("familyStoryBtn").addEventListener("click", () => {
+            renderFamilyStory();
+            getEl("familyStoryModal").classList.remove("hidden");
+        });
+        getEl("closeFamilyStoryBtn").addEventListener("click", () => getEl("familyStoryModal").classList.add("hidden"));
+        getEl("familyStoryModal").addEventListener("click", (event) => {
+            if (event.target.id === "familyStoryModal") getEl("familyStoryModal").classList.add("hidden");
+        });
 
         document.querySelectorAll("[data-date-trigger]").forEach((button) => {
             button.addEventListener("click", () => {
                 if (!guardAdminAction()) return;
                 if (button.dataset.dateTrigger === "fBirth") birthPicker.open();
                 if (button.dataset.dateTrigger === "fDeath") deathPicker.open();
+                if (button.dataset.dateTrigger === "fMarriageDate") marriagePicker.open();
             });
         });
 
@@ -869,6 +1192,16 @@ document.addEventListener("DOMContentLoaded", () => {
             if (event.target.id === "fullProfileModal") getEl("fullProfileModal").classList.add("hidden");
         });
         getEl("openFullProfileBtn").addEventListener("click", openFullProfile);
+        getEl("bioLanguageSwitcher").addEventListener("click", (event) => {
+            const button = event.target.closest(".segment-btn[data-bio-lang]");
+            if (!button) return;
+            event.preventDefault();
+            setActiveBioLanguage(button.dataset.bioLang);
+        });
+        getEl("openActiveMapBtn").addEventListener("click", () => {
+            if (!state.activeMapQuery) return;
+            window.open(`https://www.google.com/maps?q=${encodeURIComponent(state.activeMapQuery)}`, "_blank", "noopener");
+        });
 
         getEl("personNameInput").addEventListener("change", (event) => {
             if (!isAdminMode()) {
@@ -1027,19 +1360,24 @@ document.addEventListener("DOMContentLoaded", () => {
             "fMaidenName",
             "fBirth",
             "fDeath",
+            "fMarriageDate",
             "fBirthPlace",
             "fDeathPlace",
             "fEdu",
             "fProf",
             "fLiving",
             "fBurial",
-            "fBio"
+            "fMarriagePlace",
+            "fBioRu",
+            "fBioUz",
+            "fBioEn"
         ].forEach((id) => {
             getEl(id).readOnly = shouldLock;
         });
 
         getEl("fIsAlive").disabled = shouldLock;
         getEl("uploadPhoto").disabled = shouldLock;
+        getEl("uploadGalleryPhotos").disabled = shouldLock;
         updateDeathInput(getEl("fIsAlive").checked, getEl("fDeath"));
     }
 
@@ -1100,10 +1438,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getStoryPreview(person) {
         const chunks = [
-            person.bio,
-            person.profession,
-            person.birthPlace,
-            person.livingPlaces
+            getLocalizedBio(person),
+            getLocalizedDetail(person, "profession"),
+            getLocalizedDetail(person, "birthPlace"),
+            getLocalizedDetail(person, "livingPlaces"),
+            person.marriageDate ? `${t("marriageDateLabel")}: ${person.marriageDate}` : ""
         ].filter(Boolean);
 
         if (!chunks.length) return t("storyPlaceholder");
@@ -1322,7 +1661,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createNode(id, person, pos, focused, metrics) {
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        group.setAttribute("class", `person-node${focused ? " focused" : ""}`);
+        const missingFields = getMissingFields(person);
+        group.setAttribute("class", `person-node${focused ? " focused" : ""}${missingFields.length ? " has-gaps" : ""}`);
         group.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
 
         const card = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -1368,15 +1708,34 @@ document.addEventListener("DOMContentLoaded", () => {
         const story = createText(0, metrics.storyY, "node-story", shortenText(getNodeMiniStory(person), window.innerWidth < 768 ? 20 : 28));
 
         group.append(glow, card, accent, photoRing, photo, name, years, story);
+
+        if (missingFields.length) {
+            const badge = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            badge.setAttribute("cx", String(metrics.nodeWidth / 2 - 18));
+            badge.setAttribute("cy", String(-metrics.nodeHeight / 2 + 18));
+            badge.setAttribute("r", "11");
+            badge.setAttribute("class", "node-gap-badge");
+
+            const badgeText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            badgeText.setAttribute("x", String(metrics.nodeWidth / 2 - 18));
+            badgeText.setAttribute("y", String(-metrics.nodeHeight / 2 + 22));
+            badgeText.setAttribute("text-anchor", "middle");
+            badgeText.setAttribute("class", "node-gap-text");
+            badgeText.textContent = "!";
+
+            group.append(badge, badgeText);
+        }
+
         group.addEventListener("click", (event) => {
             event.stopPropagation();
+            if (Date.now() < suppressNodeSelectionUntil) return;
             if (!isMovingCamera) selectPerson(id, true);
         });
         return group;
     }
 
     function getNodeMiniStory(person) {
-        const line = person.profession || person.birthPlace || person.bio || "";
+        const line = getLocalizedBio(person) || getLocalizedDetail(person, "profession") || getLocalizedDetail(person, "birthPlace") || "";
         return line || t("storyPlaceholder");
     }
 
@@ -1443,6 +1802,200 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("newPersonName").value = "";
     }
 
+    function getMapPlaceEntries(person) {
+        if (!person) return [];
+        return [
+            { label: t("birthPlaceLabel"), value: getLocalizedDetail(person, "birthPlace") || person.birthPlace },
+            { label: t("livingPlaceLabel"), value: getLocalizedDetail(person, "livingPlaces") || person.livingPlaces },
+            { label: t("deathPlaceLabel"), value: getLocalizedDetail(person, "deathPlace") || person.deathPlace },
+            { label: t("burialLabel"), value: getLocalizedDetail(person, "burialPlace") || person.burialPlace },
+            { label: t("marriagePlaceLabel"), value: getLocalizedDetail(person, "marriagePlace") || person.marriagePlace }
+        ].filter((item) => item.value);
+    }
+
+    function getMapEmbedUrl(query) {
+        return `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=6&output=embed`;
+    }
+
+    function setActiveMapPlace(place, row = null) {
+        const embedCard = getEl("profileMapEmbedCard");
+        const frame = getEl("profileMapFrame");
+        const label = getEl("profileMapActiveLabel");
+
+        if (!place) {
+            state.activeMapQuery = "";
+            embedCard.classList.add("hidden");
+            frame.removeAttribute("src");
+            label.textContent = "";
+            return;
+        }
+
+        state.activeMapQuery = place.value;
+        embedCard.classList.remove("hidden");
+        frame.src = getMapEmbedUrl(place.value);
+        label.textContent = `${place.label}: ${place.value}`;
+
+        document.querySelectorAll(".map-place-item").forEach((item) => item.classList.remove("active"));
+        if (row) row.classList.add("active");
+    }
+
+    function renderProfileMapPlaces(person) {
+        const container = getEl("profileMapPlaces");
+        if (!container) return;
+
+        const places = getMapPlaceEntries(person);
+        container.textContent = "";
+
+        if (!places.length) {
+            setActiveMapPlace(null);
+            const empty = document.createElement("div");
+            empty.className = "map-empty";
+            empty.textContent = t("mapPlacesEmpty");
+            container.appendChild(empty);
+            return;
+        }
+
+        places.forEach((place) => {
+            const row = document.createElement("div");
+            row.className = "map-place-item";
+
+            const copy = document.createElement("div");
+            copy.className = "map-place-copy";
+
+            const label = document.createElement("span");
+            label.className = "map-place-label";
+            label.textContent = place.label;
+
+            const value = document.createElement("span");
+            value.className = "map-place-value";
+            value.textContent = place.value;
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "glass-btn";
+            button.textContent = t("showOnMap");
+            button.addEventListener("click", () => setActiveMapPlace(place, row));
+
+            row.addEventListener("click", () => setActiveMapPlace(place, row));
+
+            copy.append(label, value);
+            row.append(copy, button);
+            container.appendChild(row);
+        });
+
+        setActiveMapPlace(places[0], container.querySelector(".map-place-item"));
+    }
+
+    function renderPhotoGallery(list, person = null) {
+        const container = getEl("profileMediaList");
+        if (!container) return;
+        container.textContent = "";
+        if (!list.length) {
+            const empty = document.createElement("div");
+            empty.className = "map-empty";
+            empty.textContent = t("photoAlbumEmpty");
+            container.appendChild(empty);
+            return;
+        }
+
+        list.forEach((url, index) => {
+            const item = document.createElement("div");
+            item.className = "media-photo-item";
+
+            const image = document.createElement("img");
+            image.src = url;
+            image.alt = "Family photo";
+            item.appendChild(image);
+
+            if (isAdminMode() && person) {
+                const removeBtn = document.createElement("button");
+                removeBtn.type = "button";
+                removeBtn.className = "glass-btn media-photo-remove";
+                removeBtn.textContent = "×";
+                removeBtn.title = t("removePhoto");
+                removeBtn.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    person.photoGallery = (person.photoGallery || []).filter((_, photoIndex) => photoIndex !== index);
+                    saveGraph();
+                    renderPhotoGallery(person.photoGallery, person);
+                });
+                item.appendChild(removeBtn);
+            }
+
+            container.appendChild(item);
+        });
+    }
+
+    function renderFamilyStory() {
+        const container = getEl("familyStoryContent");
+        if (!container) return;
+
+        const people = Array.from(graph.people.values());
+        container.textContent = "";
+
+        if (!people.length) {
+            const section = document.createElement("div");
+            section.className = "story-section";
+            section.textContent = t("noDataYet");
+            container.appendChild(section);
+            return;
+        }
+
+        const surnames = people
+            .map((person) => (person.name || "").trim().split(/\s+/).slice(-1)[0])
+            .filter((value) => value && value.length > 1);
+
+        const places = people.flatMap((person) => [
+            getLocalizedDetail(person, "birthPlace"),
+            getLocalizedDetail(person, "livingPlaces"),
+            getLocalizedDetail(person, "deathPlace"),
+            getLocalizedDetail(person, "burialPlace"),
+            getLocalizedDetail(person, "marriagePlace")
+        ].filter(Boolean));
+
+        const gaps = people
+            .map((person) => ({ name: person.name || t("noName"), gaps: getMissingFields(person) }))
+            .filter((item) => item.gaps.length);
+
+        const sections = [
+            { title: t("summarySurnames"), values: topValues(surnames) },
+            { title: t("summaryPlaces"), values: topValues(places) },
+            { title: t("summaryGaps"), values: gaps.map((item) => `${item.name}: ${item.gaps.join(", ")}`) }
+        ];
+
+        sections.forEach((sectionData) => {
+            const section = document.createElement("div");
+            section.className = "story-section";
+            const heading = document.createElement("h4");
+            heading.textContent = sectionData.title;
+            section.appendChild(heading);
+
+            if (!sectionData.values.length) {
+                const paragraph = document.createElement("p");
+                paragraph.textContent = t("noDataYet");
+                section.appendChild(paragraph);
+            } else {
+                const list = document.createElement("ul");
+                sectionData.values.slice(0, 8).forEach((value) => {
+                    const item = document.createElement("li");
+                    item.textContent = value;
+                    list.appendChild(item);
+                });
+                section.appendChild(list);
+            }
+
+            container.appendChild(section);
+        });
+    }
+
+    function topValues(values) {
+        const counts = new Map();
+        values.forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
+        return Array.from(counts.entries())
+            .sort((left, right) => right[1] - left[1])
+            .map(([value, count]) => `${value} (${count})`);
+    }
+
     function openFullProfile() {
         const person = graph.getPerson(graph.getFocus());
         if (!person) return;
@@ -1452,13 +2005,32 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("modalAvatarPreview").src = person.photo || DEFAULT_AVATAR;
         getEl("fBirth").value = person.birthDate || "";
         getEl("fDeath").value = person.deathDate || "";
-        getEl("fBirthPlace").value = person.birthPlace || "";
-        getEl("fDeathPlace").value = person.deathPlace || "";
-        getEl("fLiving").value = person.livingPlaces || "";
-        getEl("fEdu").value = person.education || "";
-        getEl("fProf").value = person.profession || "";
-        getEl("fBurial").value = person.burialPlace || "";
-        getEl("fBio").value = person.bio || "";
+        state.draftDetailsTranslations = normalizeDetailsTranslations(person.detailsTranslations, {
+            birthPlace: person.birthPlace || "",
+            deathPlace: person.deathPlace || "",
+            livingPlaces: person.livingPlaces || "",
+            burialPlace: person.burialPlace || "",
+            profession: person.profession || "",
+            education: person.education || "",
+            marriagePlace: person.marriagePlace || ""
+        });
+        setBioTranslationsToInputs(person.bioTranslations, person.bio || "");
+        setActiveBioLanguage(translations[state.language] ? state.language : "ru");
+        getEl("fMarriageDate").value = person.marriageDate || "";
+        renderPhotoGallery(person.photoGallery || [], person);
+
+        const syncMapPlacesPreview = () => {
+            renderProfileMapPlaces({
+                birthPlace: getEl("fBirthPlace").value.trim(),
+                livingPlaces: getEl("fLiving").value.trim(),
+                deathPlace: getEl("fDeathPlace").value.trim(),
+                burialPlace: getEl("fBurial").value.trim(),
+                marriagePlace: getEl("fMarriagePlace").value.trim()
+            });
+        };
+        ["fBirthPlace", "fLiving", "fDeathPlace", "fBurial", "fMarriagePlace"].forEach((id) => {
+            getEl(id).oninput = syncMapPlacesPreview;
+        });
 
         const aliveToggle = getEl("fIsAlive");
         const deathInput = getEl("fDeath");
@@ -1495,20 +2067,49 @@ document.addEventListener("DOMContentLoaded", () => {
             reader.readAsDataURL(file);
         };
 
+        const galleryUpload = getEl("uploadGalleryPhotos");
+        galleryUpload.onchange = (event) => {
+            if (!isAdminMode()) return;
+            const files = Array.from(event.target.files || []);
+            if (!files.length) return;
+            const currentGallery = Array.isArray(person.photoGallery) ? person.photoGallery.slice() : [];
+
+            files.forEach((file) => {
+                if (file.size > 700 * 1024) {
+                    showCustomAlert(t("chooseSmallerPhoto"));
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (readerEvent) => {
+                    currentGallery.push(readerEvent.target.result);
+                    person.photoGallery = currentGallery.slice(-18);
+                    saveGraph();
+                    renderPhotoGallery(person.photoGallery, person);
+                };
+                reader.readAsDataURL(file);
+            });
+            galleryUpload.value = "";
+        };
+
         getEl("saveProfileBtn").onclick = () => {
             if (!guardAdminAction()) return;
             person.name = getEl("fName").value.trim() || t("noName");
             person.maidenName = getEl("fMaidenName").value.trim();
             person.birthDate = getEl("fBirth").value.trim();
+            person.marriageDate = getEl("fMarriageDate").value.trim();
             person.isAlive = aliveToggle.checked;
             person.deathDate = person.isAlive ? "" : getEl("fDeath").value.trim();
-            person.birthPlace = getEl("fBirthPlace").value.trim();
-            person.deathPlace = getEl("fDeathPlace").value.trim();
-            person.livingPlaces = getEl("fLiving").value.trim();
-            person.education = getEl("fEdu").value.trim();
-            person.profession = getEl("fProf").value.trim();
-            person.burialPlace = getEl("fBurial").value.trim();
-            person.bio = getEl("fBio").value.trim();
+            syncCurrentProfileLanguageFields();
+            person.detailsTranslations = normalizeDetailsTranslations(state.draftDetailsTranslations, {});
+            person.birthPlace = person.detailsTranslations.ru.birthPlace || "";
+            person.deathPlace = person.detailsTranslations.ru.deathPlace || "";
+            person.livingPlaces = person.detailsTranslations.ru.livingPlaces || "";
+            person.education = person.detailsTranslations.ru.education || "";
+            person.profession = person.detailsTranslations.ru.profession || "";
+            person.burialPlace = person.detailsTranslations.ru.burialPlace || "";
+            person.marriagePlace = person.detailsTranslations.ru.marriagePlace || "";
+            person.bioTranslations = normalizeBioTranslations(getBioTranslationsFromInputs(), person.bio || "");
+            person.bio = person.bioTranslations.ru || "";
             saveGraph();
             getEl("fullProfileModal").classList.add("hidden");
             selectPerson(person.id);

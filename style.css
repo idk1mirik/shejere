@@ -879,6 +879,228 @@ textarea:disabled {
     resize: vertical;
 }
 
+.bio-input-stack {
+    position: relative;
+}
+
+.story-editor-head,
+.places-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.segment-control.compact {
+    padding: 4px;
+    gap: 4px;
+}
+
+.segment-control.compact .segment-btn {
+    min-width: 36px;
+    height: 32px;
+    font-size: 11px;
+}
+
+.field-subhint {
+    margin: 6px 0 10px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.places-card {
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--card), white 28%);
+    border: 1px solid color-mix(in srgb, var(--line), transparent 20%);
+}
+
+.profile-map-places {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.map-place-item,
+.map-empty {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--bg), white 42%);
+    border: 1px solid color-mix(in srgb, var(--line), transparent 24%);
+}
+
+.map-place-copy {
+    min-width: 0;
+}
+
+.map-place-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.map-place-value {
+    display: block;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+    word-break: break-word;
+}
+
+.map-place-item .glass-btn {
+    min-width: 132px;
+}
+
+.map-place-item.active {
+    border-color: color-mix(in srgb, var(--accent), transparent 24%);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent), transparent 48%);
+}
+
+.map-empty {
+    justify-content: center;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+.profile-map-embed-card {
+    border-radius: 20px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--bg), white 36%);
+    border: 1px solid color-mix(in srgb, var(--line), transparent 18%);
+}
+
+.profile-map-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 24%);
+}
+
+.profile-map-active-label {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.profile-map-frame {
+    display: block;
+    width: 100%;
+    height: 260px;
+    border: 0;
+    background: color-mix(in srgb, var(--bg), white 12%);
+}
+
+.profile-media-list,
+.family-story-content {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.media-link-item,
+.story-section {
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--bg), white 42%);
+    border: 1px solid color-mix(in srgb, var(--line), transparent 24%);
+}
+
+.media-link-item a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.profile-media-list {
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+}
+
+.media-photo-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--bg), white 42%);
+    border: 1px solid color-mix(in srgb, var(--line), transparent 24%);
+    min-height: 132px;
+}
+
+.media-photo-item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 132px;
+    object-fit: cover;
+}
+
+.media-photo-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.story-section h4 {
+    margin: 0 0 8px;
+    font-size: 14px;
+}
+
+.story-section p,
+.story-section li {
+    margin: 0;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.story-section ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.person-node.has-gaps .node-card {
+    stroke: color-mix(in srgb, #c87a2b, transparent 8%);
+    stroke-width: 1.8;
+}
+
+.node-gap-badge {
+    fill: #c87a2b;
+}
+
+.node-gap-text {
+    fill: #fff;
+    font-family: 'Manrope', Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+@media (max-width: 768px) {
+    .profile-map-frame {
+        height: 220px;
+    }
+
+    .bio-input {
+        min-height: 112px;
+    }
+}
+
 .profile-actions {
     display: flex;
     justify-content: flex-end;
@@ -1646,6 +1868,19 @@ span.flatpickr-weekday {
 
     .profile-actions .glass-btn {
         width: 100%;
+    }
+
+    .story-editor-head,
+    .places-card-head,
+    .map-place-item,
+    .profile-map-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .map-place-item .glass-btn {
+        width: 100%;
+        min-width: 0;
     }
 
     .flatpickr-calendar {

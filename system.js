@@ -13,10 +13,67 @@ class Person {
         this.profession = data.profession || "";
         this.education = data.education || "";
         this.bio = data.bio || "";
+        this.marriageDate = data.marriageDate || "";
+        this.marriagePlace = data.marriagePlace || "";
+        this.bioTranslations = Person.normalizeTranslations(data.bioTranslations, this.bio);
+        this.detailsTranslations = Person.normalizeDetailsTranslations(
+            data.detailsTranslations,
+            {
+                birthPlace: this.birthPlace,
+                deathPlace: this.deathPlace,
+                livingPlaces: this.livingPlaces,
+                burialPlace: this.burialPlace,
+                profession: this.profession,
+                education: this.education,
+                marriagePlace: this.marriagePlace
+            }
+        );
+        this.photoGallery = Array.isArray(data.photoGallery) ? data.photoGallery.filter((item) => typeof item === "string" && item) : [];
         this.isAlive = data.isAlive !== false;
         this.parents = new Set(data.parents || []);
         this.children = new Set(data.children || []);
         this.spouses = new Set(data.spouses || []);
+    }
+
+    static normalizeTranslations(value, fallback = "") {
+        const base = { ru: "", uz: "", en: "" };
+        if (value && typeof value === "object") {
+            Object.keys(base).forEach((lang) => {
+                base[lang] = typeof value[lang] === "string" ? value[lang] : "";
+            });
+        }
+        if (!base.ru && fallback) base.ru = fallback;
+        return base;
+    }
+
+    static normalizeDetailsTranslations(value, fallback = {}) {
+        const createLang = () => ({
+            birthPlace: "",
+            deathPlace: "",
+            livingPlaces: "",
+            burialPlace: "",
+            profession: "",
+            education: "",
+            marriagePlace: ""
+        });
+        const base = { ru: createLang(), uz: createLang(), en: createLang() };
+
+        if (value && typeof value === "object") {
+            Object.keys(base).forEach((lang) => {
+                if (!value[lang] || typeof value[lang] !== "object") return;
+                Object.keys(base[lang]).forEach((field) => {
+                    base[lang][field] = typeof value[lang][field] === "string" ? value[lang][field] : "";
+                });
+            });
+        }
+
+        Object.keys(base.ru).forEach((field) => {
+            if (!base.ru[field] && typeof fallback[field] === "string") {
+                base.ru[field] = fallback[field];
+            }
+        });
+
+        return base;
     }
 
     static createId() {
@@ -41,6 +98,11 @@ class Person {
             profession: this.profession,
             education: this.education,
             bio: this.bio,
+            marriageDate: this.marriageDate,
+            marriagePlace: this.marriagePlace,
+            bioTranslations: this.bioTranslations,
+            detailsTranslations: this.detailsTranslations,
+            photoGallery: this.photoGallery,
             isAlive: this.isAlive,
             parents: Array.from(this.parents),
             children: Array.from(this.children),

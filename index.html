@@ -7,20 +7,19 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/2.8.0/dom-to-image-more.min.js"></script>
-
     <div class="ambient-gradient ambient-left"></div>
     <div class="ambient-gradient ambient-right"></div>
 
     <div class="ui-wrapper">
         <header class="top-bar">
             <div class="brand-block">
-                <h1 class="logo">SHEDJERE</h1>
+                <p class="brand-kicker" data-i18n="brandKicker">Family archive</p>
+                <h1 class="logo" data-i18n="logo">SHEDJERE</h1>
                 <p class="tagline" data-i18n="tagline">Семейная память в живом дереве</p>
             </div>
 
@@ -38,10 +37,47 @@
 
                 <div id="themePanel" class="theme-panel-header" aria-label="Theme"></div>
 
+                <button id="openStoriesBtn" class="glass-btn secondary-btn" type="button" data-i18n="stories">Истории</button>
+                <button id="openBookBtn" class="glass-btn secondary-btn" type="button" data-i18n="familyBook">Книга рода</button>
                 <button id="exportBtn" class="glass-btn" type="button" data-i18n="exportPng">Скачать PNG</button>
                 <button id="createPersonBtn" class="glass-btn primary" type="button" data-i18n="createPerson">Добавить человека</button>
             </div>
         </header>
+
+        <section class="control-ribbon">
+            <div class="ribbon-card filters-card">
+                <div class="ribbon-title-row">
+                    <h2 class="ribbon-title" data-i18n="treeFilters">Фильтры дерева</h2>
+                    <button id="resetFiltersBtn" class="ghost-btn" type="button" data-i18n="resetFilters">Сбросить</button>
+                </div>
+
+                <div class="filter-grid">
+                    <label class="filter-block">
+                        <span data-i18n="branchFilter">Ветка</span>
+                        <select id="branchFilter" class="select-input"></select>
+                    </label>
+                    <label class="filter-block">
+                        <span data-i18n="lineFilter">Линия</span>
+                        <select id="lineFilter" class="select-input">
+                            <option value="all" data-i18n="allLines">Все</option>
+                            <option value="father" data-i18n="fatherLine">Линия отца</option>
+                            <option value="mother" data-i18n="motherLine">Линия матери</option>
+                        </select>
+                    </label>
+                    <label class="filter-block">
+                        <span data-i18n="generationFilter">Поколение</span>
+                        <select id="generationFilter" class="select-input"></select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="ribbon-card legend-card">
+                <div class="ribbon-title-row">
+                    <h2 class="ribbon-title" data-i18n="branchPalette">Ветки рода</h2>
+                </div>
+                <div id="branchLegend" class="branch-legend"></div>
+            </div>
+        </section>
     </div>
 
     <main class="canvas-area" aria-label="Родословное дерево">
@@ -49,6 +85,17 @@
             <g id="scene"></g>
         </svg>
     </main>
+
+    <section class="timeline-strip">
+        <div class="timeline-header">
+            <div>
+                <p class="section-kicker" data-i18n="familyTimelineKicker">Family timeline</p>
+                <h2 class="timeline-title" data-i18n="familyTimeline">Время жизни семьи</h2>
+            </div>
+            <p class="timeline-caption" data-i18n="timelineCaption">Рождения, союзы, переезды и важные вехи</p>
+        </div>
+        <div id="timelineTrack" class="timeline-track"></div>
+    </section>
 
     <div class="floating-mobile-tools">
         <div id="mobileThemePanel" class="mobile-theme-panel" aria-label="Theme"></div>
@@ -59,12 +106,26 @@
         </div>
     </div>
 
+    <aside id="storiesDrawer" class="stories-drawer hidden">
+        <div class="drawer-head">
+            <div>
+                <p class="section-kicker" data-i18n="storiesKicker">Memories</p>
+                <h2 data-i18n="storiesTitle">Семейные истории</h2>
+            </div>
+            <button id="closeStoriesBtn" class="glass-btn icon-btn" type="button" aria-label="Close">×</button>
+        </div>
+        <p class="drawer-copy" data-i18n="storiesSubtitle">Живая лента воспоминаний с фото, датами и тегами.</p>
+        <div id="storiesList" class="stories-list"></div>
+    </aside>
+
     <aside id="personPanel" class="side-panel hidden">
         <div class="drag-handle"></div>
         <div class="panel-header">
             <img id="panelAvatar" class="avatar-big" src="" alt="">
             <button id="closePersonPanel" class="glass-btn icon-btn" type="button" aria-label="Закрыть">×</button>
         </div>
+
+        <div id="panelBranchChip" class="branch-chip"></div>
 
         <input
             type="text"
@@ -79,6 +140,8 @@
             <span class="dash">—</span>
             <input type="text" id="quickDeath" class="neomorph-input small" data-i18n-placeholder="deathShort" placeholder="Смерть" readonly>
         </div>
+
+        <div id="focusSummary" class="focus-summary"></div>
 
         <button id="openFullProfileBtn" class="glass-btn wide" type="button" data-i18n="openProfile">Открыть анкету</button>
 
@@ -198,6 +261,20 @@
                 <button id="closeModalBtn" class="glass-btn" type="button" data-i18n="cancel">Отмена</button>
                 <button id="submitModalBtn" class="glass-btn primary" type="button" data-i18n="create">Создать</button>
             </div>
+        </div>
+    </div>
+
+    <div id="bookModal" class="modal-overlay hidden">
+        <div class="book-modal-card">
+            <button class="close-x" id="closeBookModal" type="button" aria-label="Close">&times;</button>
+            <div class="book-toolbar">
+                <div>
+                    <p class="section-kicker" data-i18n="familyBookKicker">Family book</p>
+                    <h2 data-i18n="familyBook">Книга рода</h2>
+                </div>
+                <button id="printBookBtn" class="glass-btn" type="button" data-i18n="exportPdf">Экспорт в PDF</button>
+            </div>
+            <div id="bookContent" class="book-content"></div>
         </div>
     </div>
 

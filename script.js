@@ -2,6 +2,62 @@ document.addEventListener("DOMContentLoaded", () => {
     const STORAGE_KEY = "shedjere-family-tree-v1";
     const SETTINGS_KEY = "shedjere-ui-settings-v1";
     const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    const DEMO_STORIES = [
+        {
+            id: "story-1",
+            personId: null,
+            branch: "Yunusov",
+            date: "1958",
+            title: {
+                ru: "Первый семейный дом",
+                uz: "Birinchi oilaviy uy",
+                en: "The first family home"
+            },
+            body: {
+                ru: "Во дворе собирались сразу три поколения. Здесь начинались праздники, семейные советы и большая часть детских воспоминаний.",
+                uz: "Hovlida uch avlod birga yig'ilardi. Bayramlar, oilaviy suhbatlar va bolalik xotiralari shu yerdan boshlangan.",
+                en: "Three generations gathered in this courtyard. Celebrations, family advice and many childhood memories started here."
+            },
+            tags: ["Дом", "Память", "Традиция"],
+            image: "https://images.unsplash.com/photo-1518732714860-b62714ce0c59?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+            id: "story-2",
+            personId: null,
+            branch: "Karimova",
+            date: "1986",
+            title: {
+                ru: "Свадьба, о которой до сих пор вспоминают",
+                uz: "Hali ham eslanadigan to'y",
+                en: "The wedding everyone still remembers"
+            },
+            body: {
+                ru: "Тот день помнят по музыке, шумному двору и длинному столу, за которым впервые познакомились две большие ветви рода.",
+                uz: "O'sha kun musiqa, gavjum hovli va ikki katta urug' birinchi marta tanishgan uzun dasturxon bilan esda qolgan.",
+                en: "That day is remembered for the music, the crowded courtyard and the long table where two large branches of the family first met."
+            },
+            tags: ["Свадьба", "Фото", "Семья"],
+            image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+            id: "story-3",
+            personId: null,
+            branch: "Rakhimov",
+            date: "2004",
+            title: {
+                ru: "Переезд, который открыл новую главу",
+                uz: "Yangi bobni ochgan ko'chish",
+                en: "The move that opened a new chapter"
+            },
+            body: {
+                ru: "С переездом появились новые маршруты, новые соседи и новая семейная привычка собираться по выходным уже в другом районе.",
+                uz: "Ko'chish bilan yangi yo'llar, yangi qo'shnilar va dam olish kunlari boshqa hududda yig'ilish odati paydo bo'ldi.",
+                en: "The move brought new routes, new neighbours and a new weekend ritual of gathering in another part of the city."
+            },
+            tags: ["Переезд", "Город", "Новый этап"],
+            image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80"
+        }
+    ];
 
     const graph = new FamilyGraph();
     const scene = document.getElementById("scene");
@@ -9,19 +65,55 @@ document.addEventListener("DOMContentLoaded", () => {
     const getEl = (id) => document.getElementById(id);
 
     const themes = [
-        { name: "default", labelKey: "themeDefault", color: "#e6e9ef" },
-        { name: "dark", labelKey: "themeDark", color: "#121212" },
-        { name: "sunset", labelKey: "themeWarm", color: "#f4ecd8" },
-        { name: "forest", labelKey: "themeForest", color: "#e8f5e9" }
+        { name: "default", labelKey: "themeDefault", color: "#edf1ea" },
+        { name: "dark", labelKey: "themeDark", color: "#16201c" },
+        { name: "sunset", labelKey: "themeWarm", color: "#f7eadf" },
+        { name: "forest", labelKey: "themeForest", color: "#e5efe2" }
     ];
+
+    const branchPalette = ["#2c7a52", "#c25b3c", "#276f65", "#7b4b94", "#d3b66a", "#3a6ea5"];
+    const state = {
+        language: "ru",
+        theme: "default",
+        filters: {
+            branch: "all",
+            line: "all",
+            generation: "all"
+        },
+        currentModalTitleKey: "newPersonTitle"
+    };
 
     const translations = {
         ru: {
             pageTitle: "Мое Шежере | Soft Heritage",
+            brandKicker: "Family archive",
+            logo: "SHEDJERE",
             tagline: "Семейная память в живом дереве",
             searchPlaceholder: "Найти человека...",
+            stories: "Истории",
+            familyBook: "Книга рода",
             exportPng: "Скачать PNG",
             createPerson: "Добавить человека",
+            treeFilters: "Фильтры дерева",
+            resetFilters: "Сбросить",
+            branchFilter: "Ветка",
+            lineFilter: "Линия",
+            generationFilter: "Поколение",
+            branchPalette: "Ветки рода",
+            allBranches: "Все ветки",
+            allLines: "Все",
+            fatherLine: "Линия отца",
+            motherLine: "Линия матери",
+            allGenerations: "Все поколения",
+            generationRoot: "Фокусное поколение",
+            generationOlder: "Поколение выше",
+            generationYounger: "Поколение ниже",
+            familyTimelineKicker: "Family timeline",
+            familyTimeline: "Время жизни семьи",
+            timelineCaption: "Рождения, союзы, переезды и важные вехи",
+            storiesKicker: "Memories",
+            storiesTitle: "Семейные истории",
+            storiesSubtitle: "Живая лента воспоминаний с фото, датами и тегами.",
             personNamePlaceholder: "Имя Фамилия",
             birthShort: "Рождение",
             deathShort: "Смерть",
@@ -64,18 +156,63 @@ document.addEventListener("DOMContentLoaded", () => {
             exporting: "Сохраняю...",
             aliveShort: "Жив(а)",
             noName: "Без имени",
+            yearsUnknown: "годы не указаны",
+            branchUnknown: "Без ветки",
+            focusSummaryAlive: "Живой профиль, можно дополнять историю, фото и семейные связи.",
+            focusSummaryPast: "Архивный профиль: годы жизни, ключевые вехи и место в общей истории рода.",
+            relationCount: "связей",
+            branchBadge: "Ветка",
+            statusBadgeAlive: "Жив",
+            statusBadgePast: "Архив",
+            yearsBadge: "Годы",
+            storiesEmpty: "Для этой ветки пока нет истории. Здесь будет красиво смотреться первый семейный эпизод.",
+            familyBookKicker: "Family book",
+            exportPdf: "Экспорт в PDF",
+            bookIntroTitle: "Книга рода",
+            bookIntroText: "Собранный портрет семьи: ветви рода, ключевые фигуры, истории и временная линия.",
+            branchSectionTitle: "Ветки рода",
+            peopleSectionTitle: "Лица рода",
+            storiesSectionTitle: "Семейные истории",
+            timelineSectionTitle: "Временная шкала",
+            timelineBirth: "Рождение",
+            timelineDeath: "Память",
+            timelineUnion: "Союз",
+            timelineMove: "Переезд",
             themeDefault: "Светлая",
             themeDark: "Темная",
             themeWarm: "Теплая",
-            themeForest: "Лесная",
-            locale: "ru"
+            themeForest: "Лесная"
         },
         uz: {
             pageTitle: "Mening Shejerem | Soft Heritage",
+            brandKicker: "Family archive",
+            logo: "SHEDJERE",
             tagline: "Oila xotirasi jonli daraxtda",
             searchPlaceholder: "Odamni qidirish...",
+            stories: "Hikoyalar",
+            familyBook: "Nasab kitobi",
             exportPng: "PNG yuklab olish",
             createPerson: "Odam qo'shish",
+            treeFilters: "Daraxt filtrlari",
+            resetFilters: "Tozalash",
+            branchFilter: "Tarmoq",
+            lineFilter: "Yo'nalish",
+            generationFilter: "Avlod",
+            branchPalette: "Urug' tarmoqlari",
+            allBranches: "Barcha tarmoqlar",
+            allLines: "Hammasi",
+            fatherLine: "Ota tomoni",
+            motherLine: "Ona tomoni",
+            allGenerations: "Barcha avlodlar",
+            generationRoot: "Fokus avlodi",
+            generationOlder: "Yuqori avlod",
+            generationYounger: "Quyi avlod",
+            familyTimelineKicker: "Family timeline",
+            familyTimeline: "Oilaning vaqt yo'li",
+            timelineCaption: "Tug'ilishlar, nikohlar, ko'chishlar va muhim voqealar",
+            storiesKicker: "Memories",
+            storiesTitle: "Oilaviy hikoyalar",
+            storiesSubtitle: "Foto, sana va teglardan iborat tirik xotira lentasi.",
             personNamePlaceholder: "Ism Familiya",
             birthShort: "Tug'ilgan",
             deathShort: "Vafot",
@@ -86,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
             child: "Farzand",
             photoHint: "Yangi surat yuklash uchun fotoni bosing",
             profileTitle: "Qarindosh haqida ma'lumot",
-            fullNameLabel: "F.I.Sh. / to'liq ism",
+            fullNameLabel: "To'liq ism",
             maidenNameLabel: "Qizlik familiyasi",
             birthDateLabel: "Tug'ilgan sana",
             deathDateLabel: "Vafot sanasi",
@@ -97,9 +234,9 @@ document.addEventListener("DOMContentLoaded", () => {
             educationLabel: "Ta'lim",
             professionLabel: "Kasb",
             livingPlaceLabel: "Yashash joyi",
-            burialLabel: "Dafn haqidagi ma'lumot",
-            bioLabel: "Tarjimai hol va qiziqarli faktlar",
-            saveChanges: "O'zgarishlarni saqlash",
+            burialLabel: "Dafn tafsiloti",
+            bioLabel: "Tarjimai hol va muhim faktlar",
+            saveChanges: "Saqlash",
             newPersonTitle: "Yangi odam",
             orCreateNew: "yoki yangisini yarating",
             newPersonPlaceholder: "Ism kiriting...",
@@ -109,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
             addParentTitle: "Ota-onani qo'shish",
             addSpouseTitle: "Juftini qo'shish",
             addChildTitle: "Farzand qo'shish",
-            saveError: "Ma'lumotni saqlab bo'lmadi. Surat juda katta bo'lishi mumkin.",
+            saveError: "Ma'lumot saqlanmadi. Surat juda katta bo'lishi mumkin.",
             parentLimit: "Bu odam uchun ikkala ota-ona allaqachon ko'rsatilgan.",
             chooseSmallerPhoto: "750 KB dan kichikroq surat tanlang, aks holda brauzer daraxtni saqlamasligi mumkin.",
             enterName: "Iltimos, ism kiriting.",
@@ -118,18 +255,63 @@ document.addEventListener("DOMContentLoaded", () => {
             exporting: "Saqlanmoqda...",
             aliveShort: "Tirik",
             noName: "Nomsiz",
+            yearsUnknown: "yillar ko'rsatilmagan",
+            branchUnknown: "Tarmoq yo'q",
+            focusSummaryAlive: "Tirik profil: tarix, surat va oilaviy aloqa bilan to'ldirish mumkin.",
+            focusSummaryPast: "Arxiv profili: umr yillari, muhim bosqichlar va urug' tarixidagi o'rni.",
+            relationCount: "aloqa",
+            branchBadge: "Tarmoq",
+            statusBadgeAlive: "Tirik",
+            statusBadgePast: "Arxiv",
+            yearsBadge: "Yillar",
+            storiesEmpty: "Bu tarmoq uchun hali hikoya yo'q. Bu yerda birinchi oilaviy epizod juda yaxshi ko'rinadi.",
+            familyBookKicker: "Family book",
+            exportPdf: "PDF eksport",
+            bookIntroTitle: "Nasab kitobi",
+            bookIntroText: "Oilaviy tarmoqlar, asosiy shaxslar, hikoyalar va vaqt yo'li jamlangan portret.",
+            branchSectionTitle: "Urug' tarmoqlari",
+            peopleSectionTitle: "Urug' odamlari",
+            storiesSectionTitle: "Oilaviy hikoyalar",
+            timelineSectionTitle: "Vaqt yo'li",
+            timelineBirth: "Tug'ilish",
+            timelineDeath: "Xotira",
+            timelineUnion: "Nikoh",
+            timelineMove: "Ko'chish",
             themeDefault: "Yorug'",
             themeDark: "Tungi",
             themeWarm: "Issiq",
-            themeForest: "Yashil",
-            locale: "uz"
+            themeForest: "Yashil"
         },
         en: {
             pageTitle: "My Family Tree | Soft Heritage",
+            brandKicker: "Family archive",
+            logo: "SHEDJERE",
             tagline: "Family memory inside a living tree",
             searchPlaceholder: "Search for a person...",
+            stories: "Stories",
+            familyBook: "Family book",
             exportPng: "Download PNG",
             createPerson: "Add person",
+            treeFilters: "Tree filters",
+            resetFilters: "Reset",
+            branchFilter: "Branch",
+            lineFilter: "Line",
+            generationFilter: "Generation",
+            branchPalette: "Family branches",
+            allBranches: "All branches",
+            allLines: "All",
+            fatherLine: "Father line",
+            motherLine: "Mother line",
+            allGenerations: "All generations",
+            generationRoot: "Focus generation",
+            generationOlder: "Older generation",
+            generationYounger: "Younger generation",
+            familyTimelineKicker: "Family timeline",
+            familyTimeline: "The life line of the family",
+            timelineCaption: "Births, unions, moves and meaningful milestones",
+            storiesKicker: "Memories",
+            storiesTitle: "Family stories",
+            storiesSubtitle: "A living stream of memories with photos, dates and tags.",
             personNamePlaceholder: "Name Surname",
             birthShort: "Birth",
             deathShort: "Death",
@@ -172,11 +354,32 @@ document.addEventListener("DOMContentLoaded", () => {
             exporting: "Exporting...",
             aliveShort: "Alive",
             noName: "No name",
+            yearsUnknown: "years unknown",
+            branchUnknown: "No branch",
+            focusSummaryAlive: "Living profile with room for stories, portraits and family links.",
+            focusSummaryPast: "Archive profile with life years, milestones and a clear place inside the wider family story.",
+            relationCount: "connections",
+            branchBadge: "Branch",
+            statusBadgeAlive: "Living",
+            statusBadgePast: "Archive",
+            yearsBadge: "Years",
+            storiesEmpty: "There is no story for this branch yet. The first family memory will look great here.",
+            familyBookKicker: "Family book",
+            exportPdf: "Export PDF",
+            bookIntroTitle: "Family book",
+            bookIntroText: "A gathered portrait of the family: branches, key figures, stories and timeline.",
+            branchSectionTitle: "Family branches",
+            peopleSectionTitle: "Faces of the family",
+            storiesSectionTitle: "Family stories",
+            timelineSectionTitle: "Timeline",
+            timelineBirth: "Birth",
+            timelineDeath: "Memory",
+            timelineUnion: "Union",
+            timelineMove: "Move",
             themeDefault: "Light",
             themeDark: "Dark",
             themeWarm: "Warm",
-            themeForest: "Forest",
-            locale: "en"
+            themeForest: "Forest"
         }
     };
 
@@ -209,7 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let translateX = window.innerWidth / 2;
     let translateY = window.innerHeight / 2;
-    let zoomLevel = window.innerWidth < 768 ? 0.72 : 0.8;
+    let zoomLevel = window.innerWidth < 768 ? 0.72 : 0.84;
     let isDragging = false;
     let isMovingCamera = false;
     let dragStartX = 0;
@@ -220,14 +423,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastTouchY = 0;
     let initialPinchDistance = null;
     let initialZoom = 1;
-    let currentTheme = "default";
-    let currentLanguage = "ru";
-    let currentModalTitleKey = "newPersonTitle";
+    let renderedLevels = {};
 
     const birthPicker = initDatePicker("#fBirth");
     const deathPicker = initDatePicker("#fDeath");
 
     loadGraph();
+    seedDemoDataIfNeeded();
     loadSettings();
     initThemePanels();
     initLanguageSwitcher();
@@ -235,13 +437,16 @@ document.addEventListener("DOMContentLoaded", () => {
     initControls();
     initCamera();
     initProfileModal();
+    initStoriesDrawer();
+    initBookModal();
+    populateBranchFilter();
+    populateGenerationFilter();
     applySettings();
     applyTranslations();
     render(true);
-
-    function t(key) {
-        return (translations[currentLanguage] && translations[currentLanguage][key]) || translations.ru[key] || key;
-    }
+    renderStories();
+    renderTimeline();
+    renderBook();
 
     function initDatePicker(selector) {
         if (!window.flatpickr) {
@@ -257,10 +462,14 @@ document.addEventListener("DOMContentLoaded", () => {
             dateFormat: "d.m.Y",
             allowInput: true,
             disableMobile: true,
-            locale: languageLocales[currentLanguage](),
-            prevArrow: "<span class='flatpickr-nav-arrow'>‹</span>",
-            nextArrow: "<span class='flatpickr-nav-arrow'>›</span>"
+            locale: languageLocales[state.language](),
+            prevArrow: "<span class='flatpickr-nav-arrow'>&lsaquo;</span>",
+            nextArrow: "<span class='flatpickr-nav-arrow'>&rsaquo;</span>"
         });
+    }
+
+    function t(key) {
+        return translations[state.language][key] || translations.ru[key] || key;
     }
 
     function saveGraph() {
@@ -280,34 +489,84 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function saveSettings() {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-            language: currentLanguage,
-            theme: currentTheme
-        }));
+    function seedDemoDataIfNeeded() {
+        if (graph.people.size) return;
+
+        const id1 = graph.createPerson({ name: "Абдулла Юнусов" });
+        const id2 = graph.createPerson({ name: "Малика Каримова" });
+        const id3 = graph.createPerson({ name: "Саида Юнусова" });
+        const id4 = graph.createPerson({ name: "Бахром Рахимов" });
+        const id5 = graph.createPerson({ name: "Нодира Рахимова" });
+
+        graph.addSpouse(id1, id2);
+        graph.addParent(id3, id1);
+        graph.addParent(id3, id2);
+        graph.addSpouse(id3, id4);
+        graph.addParent(id5, id3);
+        graph.addParent(id5, id4);
+
+        graph.updatePerson(id1, {
+            birthDate: "14.05.1935",
+            deathDate: "03.11.2012",
+            isAlive: false,
+            birthPlace: "Самарканд",
+            profession: "Учитель",
+            bio: "Собирал семейные встречи и берег домашний архив."
+        });
+        graph.updatePerson(id2, {
+            birthDate: "18.08.1942",
+            isAlive: true,
+            birthPlace: "Самарканд",
+            profession: "Мастер по вышивке",
+            bio: "Сохранила семейные рецепты и фотографии."
+        });
+        graph.updatePerson(id3, {
+            birthDate: "22.06.1968",
+            isAlive: true,
+            birthPlace: "Ташкент",
+            profession: "Архитектор",
+            bio: "Соединила старую ветвь рода с новой городской историей."
+        });
+        graph.updatePerson(id4, {
+            birthDate: "02.12.1965",
+            isAlive: true,
+            birthPlace: "Бухара",
+            profession: "Инженер",
+            bio: "Любит хранить семейные маршруты и путешествия."
+        });
+        graph.updatePerson(id5, {
+            birthDate: "09.09.1998",
+            isAlive: true,
+            birthPlace: "Ташкент",
+            profession: "Дизайнер",
+            bio: "Собирает цифровую версию семейной истории."
+        });
+
+        graph.setFocus(id3);
+        saveGraph();
     }
 
     function loadSettings() {
         try {
             const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-            if (settings.language && translations[settings.language]) currentLanguage = settings.language;
-            if (settings.theme && themes.some(theme => theme.name === settings.theme)) currentTheme = settings.theme;
+            if (settings.language && translations[settings.language]) state.language = settings.language;
+            if (settings.theme && themes.some(theme => theme.name === settings.theme)) state.theme = settings.theme;
         } catch (error) {
             localStorage.removeItem(SETTINGS_KEY);
         }
     }
 
-    function applySettings() {
-        setTheme(currentTheme, false);
-        updateLanguageButtons();
-        updateThemeButtons();
+    function saveSettings() {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+            language: state.language,
+            theme: state.theme
+        }));
     }
 
-    function closeAllUI() {
-        ["personPanel", "profileModal", "fullProfileModal", "searchResults"].forEach(id => {
-            const el = getEl(id);
-            if (el) el.classList.add("hidden");
-        });
+    function applySettings() {
+        setTheme(state.theme, false);
+        updateLanguageButtons();
+        updateThemeButtons();
     }
 
     function showCustomAlert(message) {
@@ -349,27 +608,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setTheme(themeName, persist = true) {
-        currentTheme = themeName;
+        state.theme = themeName;
         if (themeName === "default") {
             document.documentElement.removeAttribute("data-theme");
         } else {
             document.documentElement.setAttribute("data-theme", themeName);
         }
         updateThemeButtons();
-        render(false);
         if (persist) saveSettings();
     }
 
     function updateThemeButtons() {
         document.querySelectorAll(".theme-tile").forEach(tile => {
-            tile.classList.toggle("active", tile.dataset.theme === currentTheme);
+            tile.classList.toggle("active", tile.dataset.theme === state.theme);
         });
     }
 
     function initLanguageSwitcher() {
-        const switcher = getEl("languageSwitcher");
-        if (!switcher) return;
-        switcher.addEventListener("click", (event) => {
+        getEl("languageSwitcher").addEventListener("click", (event) => {
             const button = event.target.closest(".segment-btn");
             if (!button) return;
             setLanguage(button.dataset.lang);
@@ -378,37 +634,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setLanguage(lang) {
         if (!translations[lang]) return;
-        currentLanguage = lang;
+        state.language = lang;
         document.documentElement.lang = lang;
         applyTranslations();
         updateDatePickerLocale();
         updateLanguageButtons();
-        updateThemePanelsLabels();
+        updateThemePanelLabels();
+        render(false);
+        renderStories();
+        renderTimeline();
+        renderBook();
         saveSettings();
     }
 
-    function updateThemePanelsLabels() {
+    function updateThemePanelLabels() {
         document.querySelectorAll(".theme-tile").forEach(tile => {
             const theme = themes.find(item => item.name === tile.dataset.theme);
             if (!theme) return;
-            const label = t(theme.labelKey);
-            tile.title = label;
-            tile.setAttribute("aria-label", label);
+            tile.title = t(theme.labelKey);
+            tile.setAttribute("aria-label", t(theme.labelKey));
         });
     }
 
     function updateLanguageButtons() {
         document.querySelectorAll("#languageSwitcher .segment-btn").forEach(button => {
-            button.classList.toggle("active", button.dataset.lang === currentLanguage);
+            button.classList.toggle("active", button.dataset.lang === state.language);
         });
     }
 
     function updateDatePickerLocale() {
-        const locale = languageLocales[currentLanguage]();
+        const locale = languageLocales[state.language]();
         [birthPicker, deathPicker].forEach(picker => {
-            if (picker && typeof picker.set === "function") {
-                picker.set("locale", locale);
-            }
+            if (picker && typeof picker.set === "function") picker.set("locale", locale);
         });
     }
 
@@ -420,24 +677,18 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("[data-i18n-placeholder]").forEach(node => {
             node.placeholder = t(node.dataset.i18nPlaceholder);
         });
-        getEl("modalTitle").textContent = t(currentModalTitleKey);
-        getEl("closePersonPanel").setAttribute("aria-label", t("cancel"));
-        getEl("closeFullProfile").setAttribute("aria-label", t("cancel"));
-
-        const focusId = graph.getFocus();
-        if (focusId) {
-            const person = graph.getPerson(focusId);
-            if (person) {
-                getEl("quickBirth").value = person.birthDate || "—";
-                getEl("quickDeath").value = person.isAlive !== false && !person.deathDate ? t("aliveShort") : (person.deathDate || "—");
-            }
-        }
+        document.querySelectorAll("[data-i18n-option]").forEach(node => {
+            node.textContent = t(node.dataset.i18nOption);
+        });
+        updateThemePanelLabels();
+        populateBranchFilter();
+        populateGenerationFilter();
+        updateFocusPanel();
     }
 
     function initSearch() {
         const treeSearch = getEl("treeSearch");
         const searchResults = getEl("searchResults");
-        if (!treeSearch || !searchResults) return;
 
         treeSearch.addEventListener("input", () => {
             const query = treeSearch.value.toLowerCase().trim();
@@ -448,10 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const matches = Array.from(graph.people.entries()).filter(([, person]) =>
-                person.name.toLowerCase().includes(query)
-            );
-
+            const matches = Array.from(graph.people.entries()).filter(([, person]) => person.name.toLowerCase().includes(query));
             if (!matches.length) {
                 searchResults.classList.add("hidden");
                 return;
@@ -477,43 +725,102 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         window.addEventListener("click", (event) => {
-            if (!event.target.closest(".search-container")) {
-                searchResults.classList.add("hidden");
-            }
+            if (!event.target.closest(".search-container")) searchResults.classList.add("hidden");
         });
     }
 
     function initControls() {
         getEl("exportBtn").addEventListener("click", exportPng);
         getEl("createPersonBtn").addEventListener("click", () => {
-            currentModalTitleKey = "founderTitle";
-            openRelationModal(currentModalTitleKey, id => {
+            state.currentModalTitleKey = "founderTitle";
+            openRelationModal(state.currentModalTitleKey, (id) => {
                 graph.setFocus(id);
                 saveGraph();
                 selectPerson(id, true);
             });
         });
         getEl("closePersonPanel").addEventListener("click", () => getEl("personPanel").classList.add("hidden"));
-        getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.2));
-        getEl("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel * 0.82));
+        getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.15));
+        getEl("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel * 0.85));
+        getEl("resetFiltersBtn").addEventListener("click", resetFilters);
+        getEl("branchFilter").addEventListener("change", (event) => {
+            state.filters.branch = event.target.value;
+            render(false);
+            renderStories();
+            renderBook();
+        });
+        getEl("lineFilter").addEventListener("change", (event) => {
+            state.filters.line = event.target.value;
+            render(false);
+            renderBook();
+        });
+        getEl("generationFilter").addEventListener("change", (event) => {
+            state.filters.generation = event.target.value;
+            render(false);
+            renderBook();
+        });
+
         window.addEventListener("resize", () => render(false));
 
         document.querySelectorAll("[data-date-trigger]").forEach(button => {
             button.addEventListener("click", () => {
-                const target = button.dataset.dateTrigger;
-                if (target === "fBirth" && birthPicker && typeof birthPicker.open === "function") birthPicker.open();
-                if (target === "fDeath" && deathPicker && typeof deathPicker.open === "function") deathPicker.open();
+                if (button.dataset.dateTrigger === "fBirth") birthPicker.open();
+                if (button.dataset.dateTrigger === "fDeath") deathPicker.open();
             });
         });
     }
 
+    function initStoriesDrawer() {
+        getEl("openStoriesBtn").addEventListener("click", () => getEl("storiesDrawer").classList.remove("hidden"));
+        getEl("closeStoriesBtn").addEventListener("click", () => getEl("storiesDrawer").classList.add("hidden"));
+    }
+
+    function initBookModal() {
+        getEl("openBookBtn").addEventListener("click", () => {
+            renderBook();
+            getEl("bookModal").classList.remove("hidden");
+        });
+        getEl("closeBookModal").addEventListener("click", () => getEl("bookModal").classList.add("hidden"));
+        getEl("bookModal").addEventListener("click", (event) => {
+            if (event.target.id === "bookModal") getEl("bookModal").classList.add("hidden");
+        });
+        getEl("printBookBtn").addEventListener("click", () => {
+            document.body.classList.add("printing-book");
+            window.print();
+            setTimeout(() => document.body.classList.remove("printing-book"), 50);
+        });
+    }
+
+    function initProfileModal() {
+        getEl("closeFullProfile").addEventListener("click", () => getEl("fullProfileModal").classList.add("hidden"));
+        getEl("closeModalBtn").addEventListener("click", closeRelationModal);
+        getEl("profileModal").addEventListener("click", (event) => {
+            if (event.target.id === "profileModal") closeRelationModal();
+        });
+        getEl("fullProfileModal").addEventListener("click", (event) => {
+            if (event.target.id === "fullProfileModal") getEl("fullProfileModal").classList.add("hidden");
+        });
+        getEl("openFullProfileBtn").addEventListener("click", openFullProfile);
+
+        getEl("personNameInput").addEventListener("change", (event) => {
+            const person = graph.getPerson(graph.getFocus());
+            if (!person) return;
+            person.name = event.target.value.trim() || t("noName");
+            saveGraph();
+            populateBranchFilter();
+            render(false);
+            renderStories();
+            renderBook();
+        });
+    }
+
     function initCamera() {
-        svg.addEventListener("wheel", event => {
+        svg.addEventListener("wheel", (event) => {
             event.preventDefault();
             setZoom(zoomLevel * (event.deltaY < 0 ? 1.1 : 0.9));
         }, { passive: false });
 
-        svg.addEventListener("mousedown", event => {
+        svg.addEventListener("mousedown", (event) => {
             if (event.target.closest(".person-node")) return;
             isDragging = true;
             isMovingCamera = false;
@@ -523,7 +830,7 @@ document.addEventListener("DOMContentLoaded", () => {
             pointerStartY = event.clientY;
         });
 
-        window.addEventListener("mousemove", event => {
+        window.addEventListener("mousemove", (event) => {
             if (!isDragging) return;
             translateX = event.clientX - dragStartX;
             translateY = event.clientY - dragStartY;
@@ -536,9 +843,8 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { isMovingCamera = false; }, 0);
         });
 
-        svg.addEventListener("touchstart", event => {
+        svg.addEventListener("touchstart", (event) => {
             if (event.target.closest(".person-node")) return;
-
             if (event.touches.length === 1) {
                 isDragging = true;
                 isMovingCamera = false;
@@ -553,11 +859,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }, { passive: false });
 
-        svg.addEventListener("touchmove", event => {
-            if ((event.touches.length === 1 && isDragging) || event.touches.length === 2) {
-                event.preventDefault();
-            }
-
+        svg.addEventListener("touchmove", (event) => {
+            if ((event.touches.length === 1 && isDragging) || event.touches.length === 2) event.preventDefault();
             if (isDragging && event.touches.length === 1) {
                 const touch = event.touches[0];
                 translateX += touch.clientX - lastTouchX;
@@ -571,35 +874,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }, { passive: false });
 
-        svg.addEventListener("touchend", event => {
+        svg.addEventListener("touchend", (event) => {
             if (event.touches.length < 2) initialPinchDistance = null;
             if (event.touches.length === 0) {
                 isDragging = false;
                 setTimeout(() => { isMovingCamera = false; }, 0);
             }
-        });
-    }
-
-    function initProfileModal() {
-        getEl("closeFullProfile").addEventListener("click", () => getEl("fullProfileModal").classList.add("hidden"));
-        getEl("closeModalBtn").addEventListener("click", closeRelationModal);
-
-        getEl("profileModal").addEventListener("click", event => {
-            if (event.target.id === "profileModal") closeRelationModal();
-        });
-
-        getEl("fullProfileModal").addEventListener("click", event => {
-            if (event.target.id === "fullProfileModal") getEl("fullProfileModal").classList.add("hidden");
-        });
-
-        getEl("openFullProfileBtn").addEventListener("click", openFullProfile);
-
-        getEl("personNameInput").addEventListener("change", event => {
-            const person = graph.getPerson(graph.getFocus());
-            if (!person) return;
-            person.name = event.target.value.trim() || t("noName");
-            saveGraph();
-            render(false);
         });
     }
 
@@ -611,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setZoom(value) {
-        zoomLevel = Math.min(3, Math.max(0.25, value));
+        zoomLevel = Math.min(2.8, Math.max(0.26, value));
         updateTransform();
     }
 
@@ -619,191 +899,186 @@ document.addEventListener("DOMContentLoaded", () => {
         scene.setAttribute("transform", `translate(${translateX}, ${translateY}) scale(${zoomLevel})`);
     }
 
+    function resetFilters() {
+        state.filters.branch = "all";
+        state.filters.line = "all";
+        state.filters.generation = "all";
+        getEl("branchFilter").value = "all";
+        getEl("lineFilter").value = "all";
+        getEl("generationFilter").value = "all";
+        render(false);
+        renderStories();
+        renderBook();
+    }
+
+    function populateBranchFilter() {
+        const select = getEl("branchFilter");
+        const branches = getAllBranches();
+        const currentValue = state.filters.branch;
+        select.innerHTML = [`<option value="all">${t("allBranches")}</option>`].concat(
+            branches.map(branch => `<option value="${branch}">${branch}</option>`)
+        ).join("");
+        select.value = branches.includes(currentValue) ? currentValue : "all";
+        state.filters.branch = select.value;
+        renderBranchLegend(branches);
+    }
+
+    function populateGenerationFilter() {
+        const select = getEl("generationFilter");
+        select.innerHTML = [
+            `<option value="all">${t("allGenerations")}</option>`,
+            `<option value="0">${t("generationRoot")}</option>`,
+            `<option value="-1">${t("generationOlder")}</option>`,
+            `<option value="1">${t("generationYounger")}</option>`
+        ].join("");
+        if (!["all", "0", "-1", "1"].includes(state.filters.generation)) state.filters.generation = "all";
+        select.value = state.filters.generation;
+    }
+
+    function renderBranchLegend(branches) {
+        const container = getEl("branchLegend");
+        container.innerHTML = branches.map(branch => `
+            <div class="legend-chip">
+                <span class="legend-color" style="background:${getBranchColor(branch)}"></span>
+                <span>${branch}</span>
+            </div>
+        `).join("");
+    }
+
+    function getAllBranches() {
+        return Array.from(graph.people.values())
+            .map(person => getBranchLabel(person))
+            .filter(Boolean)
+            .filter((value, index, arr) => arr.indexOf(value) === index)
+            .sort((a, b) => a.localeCompare(b));
+    }
+
+    function getBranchLabel(person) {
+        if (!person || !person.name) return t("branchUnknown");
+        const parts = person.name.trim().split(/\s+/);
+        return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+    }
+
+    function getBranchColor(branch) {
+        const source = branch || t("branchUnknown");
+        let hash = 0;
+        for (let index = 0; index < source.length; index += 1) hash += source.charCodeAt(index);
+        return branchPalette[hash % branchPalette.length];
+    }
+
     function selectPerson(id, autoCenter = false) {
         if (!id) return;
         graph.setFocus(id);
+        updateFocusPanel();
+        render(autoCenter);
+        renderStories();
+        renderTimeline();
+        renderBook();
+    }
+
+    function updateFocusPanel() {
+        const id = graph.getFocus();
         const person = graph.getPerson(id);
         if (!person) return;
 
-        getEl("profileModal").classList.add("hidden");
-        getEl("fullProfileModal").classList.add("hidden");
-        getEl("searchResults").classList.add("hidden");
-
-        getEl("personPanel").classList.remove("hidden");
         getEl("panelAvatar").src = person.photo || DEFAULT_AVATAR;
         getEl("personNameInput").value = person.name || "";
         getEl("quickBirth").value = person.birthDate || "—";
         getEl("quickDeath").value = person.isAlive !== false && !person.deathDate ? t("aliveShort") : (person.deathDate || "—");
+        getEl("panelBranchChip").innerHTML = `<span>${t("branchBadge")}</span><strong>${getBranchLabel(person)}</strong>`;
+        getEl("focusSummary").textContent = `${person.isAlive ? t("focusSummaryAlive") : t("focusSummaryPast")} ${getRelationCount(person.id)} ${t("relationCount")}.`;
+        getEl("personPanel").classList.remove("hidden");
 
         getEl("addParent").onclick = () => {
             if (person.parents.size >= 2) {
                 showCustomAlert(t("parentLimit"));
                 return;
             }
-            currentModalTitleKey = "addParentTitle";
-            openRelationModal(currentModalTitleKey, relatedId => {
+            state.currentModalTitleKey = "addParentTitle";
+            openRelationModal(state.currentModalTitleKey, relatedId => {
                 if (graph.addParent(id, relatedId)) {
                     saveGraph();
+                    populateBranchFilter();
                     render(true);
+                    renderStories();
+                    renderTimeline();
+                    renderBook();
                 }
             }, id);
         };
 
         getEl("addSpouse").onclick = () => {
-            currentModalTitleKey = "addSpouseTitle";
-            openRelationModal(currentModalTitleKey, relatedId => {
+            state.currentModalTitleKey = "addSpouseTitle";
+            openRelationModal(state.currentModalTitleKey, relatedId => {
                 if (graph.addSpouse(id, relatedId)) {
                     saveGraph();
                     render(true);
+                    renderTimeline();
+                    renderBook();
                 }
             }, id);
         };
 
         getEl("addChild").onclick = () => {
-            currentModalTitleKey = "addChildTitle";
-            openRelationModal(currentModalTitleKey, relatedId => {
+            state.currentModalTitleKey = "addChildTitle";
+            openRelationModal(state.currentModalTitleKey, relatedId => {
                 if (graph.addParent(relatedId, id)) {
                     saveGraph();
+                    populateBranchFilter();
                     render(true);
+                    renderStories();
+                    renderTimeline();
+                    renderBook();
                 }
             }, id);
         };
-
-        saveGraph();
-        render(autoCenter);
     }
 
-    function render(autoCenter) {
-        scene.textContent = "";
+    function getRelationCount(id) {
+        const person = graph.getPerson(id);
+        if (!person) return 0;
+        return person.parents.size + person.children.size + person.spouses.size;
+    }
 
-        let focusId = graph.getFocus();
-        if (!focusId && graph.people.size) {
-            focusId = graph.people.keys().next().value;
-            graph.setFocus(focusId);
-        }
+    function openRelationModal(titleKey, action, currentId = null) {
+        state.currentModalTitleKey = titleKey;
+        getEl("modalTitle").textContent = t(titleKey);
+        getEl("newPersonName").value = "";
+        const list = getEl("existingList");
+        list.textContent = "";
 
-        if (!focusId) {
-            updateTransform();
-            return;
-        }
-
-        const coords = {};
-        const levels = {};
-        const visited = new Set();
-        const queue = [{ id: focusId, level: 0 }];
-
-        while (queue.length) {
-            const { id, level } = queue.shift();
-            if (visited.has(id)) continue;
-            visited.add(id);
-            if (!levels[level]) levels[level] = [];
-            levels[level].push(id);
-
-            const person = graph.getPerson(id);
-            if (!person) continue;
-            person.parents.forEach(parentId => queue.push({ id: parentId, level: level - 1 }));
-            person.children.forEach(childId => queue.push({ id: childId, level: level + 1 }));
-            person.spouses.forEach(spouseId => queue.push({ id: spouseId, level }));
-        }
-
-        const horizontalGap = window.innerWidth < 768 ? 210 : 280;
-        const verticalGap = window.innerWidth < 768 ? 180 : 220;
-
-        Object.keys(levels).forEach(level => {
-            const people = levels[level];
-            people.forEach((id, index) => {
-                coords[id] = {
-                    x: index * horizontalGap - ((people.length - 1) * horizontalGap) / 2,
-                    y: Number(level) * verticalGap
-                };
-            });
+        graph.people.forEach((person, id) => {
+            if (id === currentId) return;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "glass-btn wide";
+            button.textContent = person.name;
+            button.onclick = () => {
+                action(id);
+                closeRelationModal();
+            };
+            list.appendChild(button);
         });
 
-        visited.forEach(id => {
-            const person = graph.getPerson(id);
-            const pos = coords[id];
-            if (!person || !pos) return;
+        getEl("submitModalBtn").onclick = () => {
+            const name = getEl("newPersonName").value.trim();
+            if (!name) {
+                showCustomAlert(t("enterName"));
+                return;
+            }
+            const id = graph.createPerson({ name });
+            action(id);
+            saveGraph();
+            closeRelationModal();
+            selectPerson(id, true);
+        };
 
-            person.children.forEach(childId => {
-                if (coords[childId]) drawPath(pos, coords[childId], "link");
-            });
-
-            person.spouses.forEach(spouseId => {
-                if (coords[spouseId] && id < spouseId) drawSpousePath(pos, coords[spouseId]);
-            });
-        });
-
-        visited.forEach(id => {
-            const person = graph.getPerson(id);
-            const pos = coords[id];
-            if (!person || !pos) return;
-            scene.appendChild(createNode(id, person, pos, id === focusId));
-        });
-
-        if (autoCenter && coords[focusId]) {
-            translateX = window.innerWidth / 2 - coords[focusId].x * zoomLevel;
-            translateY = window.innerHeight / 2 - coords[focusId].y * zoomLevel;
-        }
-
-        updateTransform();
+        getEl("profileModal").classList.remove("hidden");
     }
 
-    function drawPath(from, to, className) {
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", `M ${from.x} ${from.y} C ${from.x} ${from.y + 90}, ${to.x} ${to.y - 90}, ${to.x} ${to.y}`);
-        path.setAttribute("class", className);
-        scene.appendChild(path);
-    }
-
-    function drawSpousePath(from, to) {
-        const midX = (from.x + to.x) / 2;
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", `M ${from.x} ${from.y} Q ${midX} ${from.y - 70} ${to.x} ${to.y}`);
-        path.setAttribute("class", "spouse-link");
-        scene.appendChild(path);
-    }
-
-    function createNode(id, person, pos, focused) {
-        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        group.setAttribute("class", `person-node${focused ? " focused" : ""}`);
-        group.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
-        group.dataset.id = id;
-
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("r", "45");
-        circle.setAttribute("class", "node-bg");
-
-        const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
-        image.setAttribute("href", person.photo || DEFAULT_AVATAR);
-        image.setAttribute("x", "-40");
-        image.setAttribute("y", "-40");
-        image.setAttribute("width", "80");
-        image.setAttribute("height", "80");
-        image.setAttribute("clip-path", "circle(40px)");
-
-        const labelBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        labelBg.setAttribute("x", "-70");
-        labelBg.setAttribute("y", "38");
-        labelBg.setAttribute("width", "140");
-        labelBg.setAttribute("height", "28");
-        labelBg.setAttribute("rx", "14");
-
-        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        label.setAttribute("y", "56");
-        label.setAttribute("text-anchor", "middle");
-        label.textContent = shortenName(person.name);
-
-        group.append(circle, image, labelBg, label);
-        group.addEventListener("click", event => {
-            event.stopPropagation();
-            if (!isMovingCamera) selectPerson(id);
-        });
-        return group;
-    }
-
-    function shortenName(name) {
-        const source = name || t("noName");
-        return source.length > 20 ? `${source.slice(0, 19)}...` : source;
+    function closeRelationModal() {
+        getEl("profileModal").classList.add("hidden");
+        getEl("newPersonName").value = "";
     }
 
     function openFullProfile() {
@@ -834,24 +1109,23 @@ document.addEventListener("DOMContentLoaded", () => {
             updateDeathInput(aliveToggle.checked, deathInput);
         };
 
-        const avatarPreview = getEl("modalAvatarPreview");
         const photoUpload = getEl("uploadPhoto");
-        getEl("modalAvatarContainer").onclick = event => {
+        getEl("modalAvatarContainer").onclick = (event) => {
             if (!event.target.closest(".upload-badge")) photoUpload.click();
         };
 
-        photoUpload.onchange = event => {
+        photoUpload.onchange = (event) => {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 750 * 1024) {
-                showCustomAlert(t("chooseSmallerPhoto"));
-            }
+            if (file.size > 750 * 1024) showCustomAlert(t("chooseSmallerPhoto"));
             const reader = new FileReader();
-            reader.onload = readerEvent => {
-                avatarPreview.src = readerEvent.target.result;
+            reader.onload = (readerEvent) => {
+                getEl("modalAvatarPreview").src = readerEvent.target.result;
                 person.photo = readerEvent.target.result;
                 saveGraph();
                 render(false);
+                renderStories();
+                renderBook();
             };
             reader.readAsDataURL(file);
         };
@@ -869,8 +1143,8 @@ document.addEventListener("DOMContentLoaded", () => {
             person.profession = getEl("fProf").value.trim();
             person.burialPlace = getEl("fBurial").value.trim();
             person.bio = getEl("fBio").value.trim();
-
             saveGraph();
+            populateBranchFilter();
             getEl("fullProfileModal").classList.add("hidden");
             selectPerson(id);
         };
@@ -884,46 +1158,352 @@ document.addEventListener("DOMContentLoaded", () => {
         if (deathPicker && deathPicker._input) deathPicker._input.disabled = isAlive;
     }
 
-    function openRelationModal(titleKey, action, currentId = null) {
-        getEl("personPanel").classList.add("hidden");
-        currentModalTitleKey = titleKey;
-        getEl("modalTitle").textContent = t(titleKey);
-        getEl("newPersonName").value = "";
+    function render(autoCenter) {
+        scene.textContent = "";
 
-        const list = getEl("existingList");
-        list.textContent = "";
+        let focusId = graph.getFocus();
+        if (!focusId && graph.people.size) {
+            focusId = graph.people.keys().next().value;
+            graph.setFocus(focusId);
+        }
+        if (!focusId) return;
 
-        graph.people.forEach((person, id) => {
-            if (id === currentId) return;
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "glass-btn wide";
-            button.textContent = person.name;
-            button.onclick = () => {
-                action(id);
-                closeRelationModal();
-            };
-            list.appendChild(button);
+        const { levels, coords, visibleIds } = buildVisibleLayout(focusId);
+        renderedLevels = levels;
+
+        visibleIds.forEach(id => {
+            const person = graph.getPerson(id);
+            const pos = coords[id];
+            if (!person || !pos) return;
+            person.children.forEach(childId => {
+                if (coords[childId] && visibleIds.has(childId)) drawPath(pos, coords[childId], "link");
+            });
+            person.spouses.forEach(spouseId => {
+                if (coords[spouseId] && visibleIds.has(spouseId) && id < spouseId) drawSpousePath(pos, coords[spouseId], getBranchColor(getBranchLabel(person)));
+            });
         });
 
-        getEl("submitModalBtn").onclick = () => {
-            const name = getEl("newPersonName").value.trim();
-            if (!name) {
-                showCustomAlert(t("enterName"));
-                return;
-            }
-            const id = graph.createPerson({ name });
-            action(id);
-            closeRelationModal();
-            selectPerson(id, true);
-        };
+        visibleIds.forEach(id => {
+            const person = graph.getPerson(id);
+            const pos = coords[id];
+            if (!person || !pos) return;
+            scene.appendChild(createNode(id, person, pos, id === focusId));
+        });
 
-        getEl("profileModal").classList.remove("hidden");
+        if (autoCenter && coords[focusId]) {
+            translateX = window.innerWidth / 2 - coords[focusId].x * zoomLevel;
+            translateY = window.innerHeight / 2 - coords[focusId].y * zoomLevel;
+        }
+
+        updateTransform();
     }
 
-    function closeRelationModal() {
-        getEl("profileModal").classList.add("hidden");
-        getEl("newPersonName").value = "";
+    function buildVisibleLayout(focusId) {
+        const coords = {};
+        const levels = {};
+        const visibleIds = new Set();
+        const queue = [{ id: focusId, level: 0, line: "self" }];
+        const visited = new Set();
+
+        while (queue.length) {
+            const item = queue.shift();
+            if (visited.has(item.id)) continue;
+            visited.add(item.id);
+            const person = graph.getPerson(item.id);
+            if (!person) continue;
+
+            const generationPass = state.filters.generation === "all" || String(item.level) === state.filters.generation;
+            const branchPass = state.filters.branch === "all" || getBranchLabel(person) === state.filters.branch;
+            const linePass = state.filters.line === "all" || item.line === state.filters.line || item.line === "self";
+
+            if ((generationPass && branchPass && linePass) || item.id === focusId) {
+                visibleIds.add(item.id);
+                if (!levels[item.level]) levels[item.level] = [];
+                levels[item.level].push(item.id);
+            }
+
+            const parents = Array.from(person.parents);
+            parents.forEach((parentId, index) => {
+                const parentLine = index === 0 ? "father" : "mother";
+                queue.push({ id: parentId, level: item.level - 1, line: item.line === "self" ? parentLine : item.line });
+            });
+            person.children.forEach(childId => queue.push({ id: childId, level: item.level + 1, line: item.line === "self" ? "self" : item.line }));
+            person.spouses.forEach(spouseId => queue.push({ id: spouseId, level: item.level, line: item.line }));
+        }
+
+        Object.keys(levels).forEach(levelKey => {
+            const ids = levels[levelKey];
+            ids.forEach((id, index) => {
+                coords[id] = {
+                    x: index * 290 - ((ids.length - 1) * 290) / 2,
+                    y: Number(levelKey) * (window.innerWidth < 768 ? 208 : 236)
+                };
+            });
+        });
+
+        return { levels, coords, visibleIds };
+    }
+
+    function drawPath(from, to, className) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M ${from.x} ${from.y + 6} C ${from.x} ${from.y + 96}, ${to.x} ${to.y - 88}, ${to.x} ${to.y}`);
+        path.setAttribute("class", className);
+        scene.appendChild(path);
+    }
+
+    function drawSpousePath(from, to, color) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const midX = (from.x + to.x) / 2;
+        path.setAttribute("d", `M ${from.x + 104} ${from.y - 30} Q ${midX} ${from.y - 72} ${to.x - 104} ${to.y - 30}`);
+        path.setAttribute("class", "spouse-link");
+        path.style.stroke = color;
+        scene.appendChild(path);
+    }
+
+    function createNode(id, person, pos, focused) {
+        const branch = getBranchLabel(person);
+        const branchColor = getBranchColor(branch);
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("class", `person-node${focused ? " focused" : ""}`);
+        group.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
+        group.style.setProperty("--node-branch", branchColor);
+
+        const shadow = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        shadow.setAttribute("x", "-118");
+        shadow.setAttribute("y", "-58");
+        shadow.setAttribute("width", "236");
+        shadow.setAttribute("height", "126");
+        shadow.setAttribute("rx", "28");
+        shadow.setAttribute("class", "node-shadow-card");
+
+        const card = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        card.setAttribute("x", "-114");
+        card.setAttribute("y", "-62");
+        card.setAttribute("width", "228");
+        card.setAttribute("height", "118");
+        card.setAttribute("rx", "26");
+        card.setAttribute("class", "node-card-bg");
+
+        const accent = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        accent.setAttribute("x", "-114");
+        accent.setAttribute("y", "-62");
+        accent.setAttribute("width", "228");
+        accent.setAttribute("height", "10");
+        accent.setAttribute("rx", "26");
+        accent.setAttribute("class", "node-card-accent");
+
+        const avatarRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        avatarRing.setAttribute("cx", "-68");
+        avatarRing.setAttribute("cy", "-6");
+        avatarRing.setAttribute("r", "34");
+        avatarRing.setAttribute("class", "node-avatar-ring");
+
+        const avatar = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        avatar.setAttribute("href", person.photo || DEFAULT_AVATAR);
+        avatar.setAttribute("x", "-98");
+        avatar.setAttribute("y", "-36");
+        avatar.setAttribute("width", "60");
+        avatar.setAttribute("height", "60");
+        avatar.setAttribute("clip-path", "circle(30px at 30px 30px)");
+
+        const name = createSvgText(-20, -18, "node-name", shortenName(person.name, 23));
+        const years = createSvgText(-20, 4, "node-meta", getYearsLabel(person));
+        const branchText = createSvgText(-20, 26, "node-meta branch-text", branch);
+        const statusChip = createChip(66, -26, person.isAlive ? t("statusBadgeAlive") : t("statusBadgePast"), person.isAlive ? branchColor : "#6f7a73");
+        const yearsChip = createChip(48, 18, t("yearsBadge"), branchColor, true);
+
+        group.append(shadow, card, accent, avatarRing, avatar, name, years, branchText, statusChip, yearsChip);
+        group.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (!isMovingCamera) selectPerson(id, true);
+        });
+        return group;
+    }
+
+    function createSvgText(x, y, className, text) {
+        const node = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        node.setAttribute("x", String(x));
+        node.setAttribute("y", String(y));
+        node.setAttribute("class", className);
+        node.textContent = text;
+        return node;
+    }
+
+    function createChip(x, y, text, color, outlined = false) {
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("transform", `translate(${x}, ${y})`);
+
+        const width = Math.max(54, text.length * 7 + 18);
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", String(-width / 2));
+        rect.setAttribute("y", "-13");
+        rect.setAttribute("width", String(width));
+        rect.setAttribute("height", "26");
+        rect.setAttribute("rx", "13");
+        rect.setAttribute("class", outlined ? "node-chip node-chip-outline" : "node-chip");
+        rect.style.fill = outlined ? "transparent" : color;
+        rect.style.stroke = color;
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("class", outlined ? "node-chip-text node-chip-text-outline" : "node-chip-text");
+        label.setAttribute("text-anchor", "middle");
+        label.setAttribute("y", "5");
+        label.textContent = text;
+        if (!outlined) label.style.fill = "#fff";
+        if (outlined) label.style.fill = color;
+
+        group.append(rect, label);
+        return group;
+    }
+
+    function shortenName(name, maxLength) {
+        const source = name || t("noName");
+        return source.length > maxLength ? `${source.slice(0, maxLength - 3)}...` : source;
+    }
+
+    function getYearsLabel(person) {
+        if (!person.birthDate && !person.deathDate) return t("yearsUnknown");
+        return [person.birthDate || "?", person.isAlive ? "..." : (person.deathDate || "?")].join(" - ");
+    }
+
+    function renderStories() {
+        const list = getEl("storiesList");
+        const currentPerson = graph.getPerson(graph.getFocus());
+        const activeBranch = state.filters.branch !== "all" ? state.filters.branch : (currentPerson ? getBranchLabel(currentPerson) : "all");
+
+        const stories = DEMO_STORIES.filter(story => activeBranch === "all" || story.branch === activeBranch);
+        if (!stories.length) {
+            list.innerHTML = `<div class="empty-story">${t("storiesEmpty")}</div>`;
+            return;
+        }
+
+        list.innerHTML = stories.map(story => `
+            <article class="story-card">
+                <img src="${story.image}" alt="${story.title[state.language] || story.title.ru}">
+                <div class="story-card-body">
+                    <div class="story-meta">
+                        <span>${story.date}</span>
+                        <span>${story.branch}</span>
+                    </div>
+                    <h3>${story.title[state.language] || story.title.ru}</h3>
+                    <p>${story.body[state.language] || story.body.ru}</p>
+                    <div class="story-tags">${story.tags.map(tag => `<span>${tag}</span>`).join("")}</div>
+                </div>
+            </article>
+        `).join("");
+    }
+
+    function buildTimelineEvents() {
+        const items = [];
+        graph.people.forEach(person => {
+            if (person.birthDate) items.push({ date: person.birthDate, label: t("timelineBirth"), title: person.name, subtitle: person.birthPlace || getBranchLabel(person), personId: person.id });
+            if (person.deathDate) items.push({ date: person.deathDate, label: t("timelineDeath"), title: person.name, subtitle: person.deathPlace || getBranchLabel(person), personId: person.id });
+            if (person.spouses.size) items.push({ date: person.birthDate || "1980", label: t("timelineUnion"), title: person.name, subtitle: getBranchLabel(person), personId: person.id });
+            if (person.livingPlaces) items.push({ date: person.birthDate || "1990", label: t("timelineMove"), title: person.livingPlaces, subtitle: person.name, personId: person.id });
+        });
+
+        DEMO_STORIES.forEach(story => {
+            items.push({
+                date: story.date,
+                label: t("stories"),
+                title: story.title[state.language] || story.title.ru,
+                subtitle: story.branch,
+                personId: story.personId
+            });
+        });
+
+        return items.sort((a, b) => normalizeYear(a.date) - normalizeYear(b.date)).slice(0, 16);
+    }
+
+    function normalizeYear(value) {
+        const match = String(value).match(/(\d{4})/);
+        return match ? Number(match[1]) : 0;
+    }
+
+    function renderTimeline() {
+        const track = getEl("timelineTrack");
+        const events = buildTimelineEvents();
+        track.innerHTML = events.map(event => `
+            <button class="timeline-event" type="button" data-person-id="${event.personId || ""}">
+                <span class="timeline-event-year">${event.date}</span>
+                <span class="timeline-event-label">${event.label}</span>
+                <strong>${event.title}</strong>
+                <small>${event.subtitle}</small>
+            </button>
+        `).join("");
+
+        track.querySelectorAll(".timeline-event").forEach(button => {
+            button.addEventListener("click", () => {
+                if (button.dataset.personId) selectPerson(button.dataset.personId, true);
+            });
+        });
+    }
+
+    function renderBook() {
+        const container = getEl("bookContent");
+        const people = Array.from(graph.people.values()).filter(person => state.filters.branch === "all" || getBranchLabel(person) === state.filters.branch);
+        const branches = Array.from(new Set(people.map(getBranchLabel)));
+        const stories = DEMO_STORIES.filter(story => state.filters.branch === "all" || story.branch === state.filters.branch);
+        const timeline = buildTimelineEvents().slice(0, 10);
+
+        container.innerHTML = `
+            <section class="book-hero">
+                <h3>${t("bookIntroTitle")}</h3>
+                <p>${t("bookIntroText")}</p>
+            </section>
+            <section class="book-section">
+                <h4>${t("branchSectionTitle")}</h4>
+                <div class="book-branch-grid">
+                    ${branches.map(branch => `
+                        <div class="book-branch-card">
+                            <span class="book-branch-dot" style="background:${getBranchColor(branch)}"></span>
+                            <strong>${branch}</strong>
+                            <small>${people.filter(person => getBranchLabel(person) === branch).length} ${t("relationCount")}</small>
+                        </div>
+                    `).join("")}
+                </div>
+            </section>
+            <section class="book-section">
+                <h4>${t("peopleSectionTitle")}</h4>
+                <div class="book-people-list">
+                    ${people.map(person => `
+                        <article class="book-person-row">
+                            <div>
+                                <strong>${person.name}</strong>
+                                <p>${getYearsLabel(person)}</p>
+                            </div>
+                            <span>${getBranchLabel(person)}</span>
+                        </article>
+                    `).join("")}
+                </div>
+            </section>
+            <section class="book-section">
+                <h4>${t("storiesSectionTitle")}</h4>
+                <div class="book-story-list">
+                    ${stories.map(story => `
+                        <article class="book-story-row">
+                            <strong>${story.title[state.language] || story.title.ru}</strong>
+                            <p>${story.body[state.language] || story.body.ru}</p>
+                            <span>${story.date} · ${story.branch}</span>
+                        </article>
+                    `).join("")}
+                </div>
+            </section>
+            <section class="book-section">
+                <h4>${t("timelineSectionTitle")}</h4>
+                <div class="book-timeline-list">
+                    ${timeline.map(event => `
+                        <div class="book-timeline-row">
+                            <strong>${event.date}</strong>
+                            <div>
+                                <b>${event.title}</b>
+                                <span>${event.label} · ${event.subtitle}</span>
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            </section>
+        `;
     }
 
     function exportPng() {
@@ -940,10 +1520,10 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const bbox = scene.getBBox();
             const padding = 70;
-            const width = Math.max(320, Math.ceil(bbox.width + padding * 2));
-            const height = Math.max(320, Math.ceil(bbox.height + padding * 2));
+            const width = Math.max(420, Math.ceil(bbox.width + padding * 2));
+            const height = Math.max(420, Math.ceil(bbox.height + padding * 2));
             const style = getComputedStyle(document.documentElement);
-            const bg = style.getPropertyValue("--bg").trim() || "#e6e9ef";
+            const bg = style.getPropertyValue("--bg").trim() || "#edf1ea";
 
             const svgClone = svg.cloneNode(true);
             svgClone.setAttribute("width", width);
@@ -965,7 +1545,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 ctx.fillStyle = bg;
                 ctx.fillRect(0, 0, width, height);
                 ctx.drawImage(image, 0, 0);
-
                 const link = document.createElement("a");
                 link.download = `Shedjere-${Date.now()}.png`;
                 link.href = canvas.toDataURL("image/png");
@@ -988,16 +1567,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getExportStyles() {
         const style = getComputedStyle(document.documentElement);
-        const text = style.getPropertyValue("--text").trim() || "#2d3047";
-        const accent = style.getPropertyValue("--accent").trim() || "#5542ff";
+        const text = style.getPropertyValue("--text").trim() || "#233127";
         const card = style.getPropertyValue("--white").trim() || "#ffffff";
-
+        const line = style.getPropertyValue("--line").trim() || "rgba(35,49,39,0.16)";
         return `
-            .link { fill:none; stroke:${text}; stroke-width:2.5; opacity:.35; }
-            .spouse-link { fill:none; stroke:${accent}; stroke-width:3; stroke-dasharray:8 8; }
-            .person-node circle { fill:${card}; stroke:${accent}; stroke-width:1; }
-            .person-node rect { fill:${card}; opacity:.92; }
-            .person-node text { font-family:Inter, Arial, sans-serif; font-weight:900; fill:${text}; font-size:12px; }
+            .link { fill:none; stroke:${line}; stroke-width:2.5; opacity:0.7; }
+            .spouse-link { fill:none; stroke-width:3; stroke-dasharray:8 8; opacity:0.82; }
+            .node-shadow-card { fill:rgba(0,0,0,0.08); }
+            .node-card-bg { fill:${card}; }
+            .node-card-accent { fill:var(--node-branch); }
+            .node-avatar-ring { fill:${card}; stroke:var(--node-branch); stroke-width:3; }
+            .node-name { font-family:Sora, Arial, sans-serif; fill:${text}; font-weight:800; font-size:13px; }
+            .node-meta { font-family:Sora, Arial, sans-serif; fill:${text}; font-weight:600; font-size:11px; opacity:0.76; }
+            .branch-text { fill:var(--node-branch); opacity:1; }
+            .node-chip-text { font-family:Sora, Arial, sans-serif; font-weight:800; font-size:10px; }
+            .node-chip-text-outline { font-family:Sora, Arial, sans-serif; font-weight:800; font-size:10px; }
         `;
     }
 });

@@ -114,13 +114,28 @@ body::before {
     pointer-events: none;
     opacity: 0;
     background:
-        radial-gradient(circle at var(--theme-origin-x) var(--theme-origin-y), color-mix(in srgb, var(--accent), transparent 76%) 0%, transparent 18%),
-        radial-gradient(circle at var(--theme-origin-x) var(--theme-origin-y), color-mix(in srgb, white, transparent 86%) 0%, transparent 36%);
-    transform: scale(0.82);
+        radial-gradient(circle at top right, color-mix(in srgb, white, transparent 82%) 0%, transparent 36%),
+        linear-gradient(180deg, color-mix(in srgb, var(--bg), white 8%) 0%, var(--bg) 52%, color-mix(in srgb, var(--bg), black 5%) 100%);
+    clip-path: circle(0 at var(--theme-origin-x) var(--theme-origin-y));
 }
 
 body.theme-transition::before {
-    animation: themeBurst 0.72s cubic-bezier(0.2, 0.9, 0.24, 1);
+    animation: themeSweep 0.82s cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 11;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(115deg, transparent 0%, color-mix(in srgb, white, transparent 80%) 24%, color-mix(in srgb, var(--accent), transparent 86%) 42%, transparent 68%);
+    transform: translateX(-42%) skewX(-14deg);
+}
+
+body.locale-transition::after {
+    animation: localeSweep 0.56s cubic-bezier(0.24, 0.9, 0.24, 1);
 }
 
 [data-theme="dark"] body,
@@ -316,6 +331,7 @@ body.locale-transition .full-profile-card {
 .mode-badge,
 .panel-mode-pill {
     width: fit-content;
+    align-self: flex-end;
     padding: 7px 12px;
     border-radius: 999px;
     color: #fff;
@@ -371,6 +387,15 @@ body.locale-transition .full-profile-card {
 .mobile-theme-panel {
     display: flex;
     gap: 8px;
+}
+
+.theme-panel-header,
+.mobile-theme-panel {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    padding: 0;
 }
 
 .theme-tile {
@@ -564,7 +589,7 @@ textarea:disabled {
     z-index: 110;
     display: flex;
     flex-direction: column;
-    width: min(370px, calc(100vw - 32px));
+    width: min(408px, calc(100vw - 32px));
     max-height: calc(100vh - 150px);
     padding: 22px;
     overflow-y: auto;
@@ -587,6 +612,7 @@ textarea:disabled {
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
+    flex: 1;
 }
 
 .avatar-big {
@@ -628,19 +654,20 @@ textarea:disabled {
     padding: 15px;
     border-radius: 20px;
     background: color-mix(in srgb, var(--card-strong), transparent 8%);
+    border: 1px solid color-mix(in srgb, var(--line), transparent 38%);
 }
 
 .focus-summary {
     color: var(--muted);
-    font-size: 13px;
-    line-height: 1.7;
+    font-size: 14px;
+    line-height: 1.85;
 }
 
 .story-preview {
     margin: 10px 0 0;
     color: var(--text);
     font-size: 14px;
-    line-height: 1.75;
+    line-height: 1.9;
 }
 
 .rel-section {
@@ -961,7 +988,7 @@ textarea:disabled {
     left: 16px;
     bottom: calc(18px + env(safe-area-inset-bottom));
     z-index: 130;
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 10px;
     pointer-events: none;
@@ -1110,6 +1137,10 @@ body.viewer-mode .viewer-only {
 body.viewer-mode .mobile-viewer-actions.viewer-only,
 body.viewer-mode .mobile-back-to-menu.viewer-only {
     display: none;
+}
+
+body.admin-mode .floating-mobile-tools {
+    display: flex;
 }
 
 body.viewer-mode .main-name,
@@ -1274,6 +1305,20 @@ span.flatpickr-weekday {
     }
 }
 
+@keyframes themeSweep {
+    0% {
+        opacity: 1;
+        clip-path: circle(0 at var(--theme-origin-x) var(--theme-origin-y));
+    }
+    60% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        clip-path: circle(160vmax at var(--theme-origin-x) var(--theme-origin-y));
+    }
+}
+
 @keyframes themeLift {
     0% {
         opacity: 0.75;
@@ -1295,6 +1340,20 @@ span.flatpickr-weekday {
     100% {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes localeSweep {
+    0% {
+        opacity: 0;
+        transform: translateX(-42%) skewX(-14deg);
+    }
+    18% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(148%) skewX(-14deg);
     }
 }
 
@@ -1451,6 +1510,11 @@ span.flatpickr-weekday {
 
     .mobile-zoom-controls {
         display: none;
+    }
+
+    body.admin-mode .floating-mobile-tools,
+    body.mobile-tree-focus .floating-mobile-tools {
+        display: flex;
     }
 
     body.admin-mode .mobile-zoom-controls,

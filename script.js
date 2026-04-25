@@ -555,7 +555,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function setLanguage(lang) {
         if (!translations[lang]) return;
         state.language = lang;
-        animateUiTransition("locale");
+        animateUiTransition("locale", { x: window.innerWidth * 0.16, y: window.innerHeight * 0.12 });
         document.documentElement.lang = lang;
         applyTranslations();
         [birthPicker, deathPicker].forEach((picker) => {
@@ -576,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.clearTimeout(animateUiTransition.timeoutId);
         animateUiTransition.timeoutId = window.setTimeout(() => {
             document.body.classList.remove(className);
-        }, kind === "theme" ? 720 : 520);
+        }, kind === "theme" ? 860 : 620);
     }
 
     function updateLanguageButtons() {

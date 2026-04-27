@@ -34,7 +34,16 @@
             </div>
 
             <div class="access-input-row">
-                <input type="password" id="accessCodeInput" class="neomorph-input" data-i18n-placeholder="accessPlaceholder" placeholder="Введите код">
+                <div class="password-input-wrap">
+                    <input type="password" id="accessCodeInput" class="neomorph-input" data-i18n-placeholder="accessPlaceholder" placeholder="Введите код" autocomplete="current-password">
+                    <button type="button" id="toggleAccessCodeVisibility" class="glass-btn icon-btn password-toggle" aria-label="Показать код" aria-pressed="false">
+                        <svg class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path class="eye-outline" d="M2 12C4.8 7.5 8.1 5.2 12 5.2C15.9 5.2 19.2 7.5 22 12C19.2 16.5 15.9 18.8 12 18.8C8.1 18.8 4.8 16.5 2 12Z"></path>
+                            <circle class="eye-pupil" cx="12" cy="12" r="3.1"></circle>
+                            <path class="eye-slash" d="M4 4L20 20"></path>
+                        </svg>
+                    </button>
+                </div>
                 <button type="button" id="unlockBtn" class="glass-btn accent-fill" data-i18n="unlock">Открыть</button>
             </div>
 

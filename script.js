@@ -3,7 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const SETTINGS_KEY = "shedjere-ui-settings-v2";
     const SESSION_MODE_KEY = "shedjere-session-mode";
     const VIEWER_GUIDE_KEY = "shedjere-viewer-guide-seen-v1";
-    const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    const DEFAULT_AVATAR = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><rect width="240" height="240" rx="120" fill="#e7efe5"/><circle cx="120" cy="91" r="40" fill="#8aa691"/><path d="M48 196c10-34 36-55 72-55s62 21 72 55" fill="#8aa691"/></svg>'
+    )}`;
     const ACCESS_CODES = {
         admin: "mir67",
         viewer: "guests123"
@@ -92,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
             accessText: "Введите код, чтобы открыть режим редактирования или гостевой просмотр.",
             accessLabel: "Код доступа",
             accessPlaceholder: "Введите код",
+            showAccessCode: "Показать код",
+            hideAccessCode: "Скрыть код",
             unlock: "Открыть",
             enterAdmin: "Войти как админ",
             enterViewer: "Войти как гость",
@@ -224,6 +228,8 @@ document.addEventListener("DOMContentLoaded", () => {
             accessText: "Tahrirlash yoki mehmon ko'rish rejimini ochish uchun kod kiriting.",
             accessLabel: "Kirish kodi",
             accessPlaceholder: "Kod kiriting",
+            showAccessCode: "Kodni ko'rsatish",
+            hideAccessCode: "Kodni yashirish",
             unlock: "Ochish",
             enterAdmin: "Admin sifatida kirish",
             enterViewer: "Mehmon sifatida kirish",
@@ -356,6 +362,8 @@ document.addEventListener("DOMContentLoaded", () => {
             accessText: "Enter a code to open editing mode or guest viewing.",
             accessLabel: "Access code",
             accessPlaceholder: "Enter code",
+            showAccessCode: "Show code",
+            hideAccessCode: "Hide code",
             unlock: "Unlock",
             enterAdmin: "Enter as admin",
             enterViewer: "Enter as guest",
@@ -450,7 +458,9 @@ document.addEventListener("DOMContentLoaded", () => {
         currentModalTitleKey: "newPersonTitle",
         profileBioLanguage: "ru",
         draftDetailsTranslations: null,
-        activeMapQuery: ""
+        activeMapQuery: "",
+        isFocusPanelOpen: false,
+        isMobileTreeFocus: false
     };
 
     let translateX = window.innerWidth / 2;
@@ -494,6 +504,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function suppressNodeSelection(duration = 420) {
         suppressNodeSelectionUntil = Date.now() + duration;
+    }
+
+    function getPhotoSrc(value) {
+        return typeof value === "string" && value.trim() ? value : DEFAULT_AVATAR;
+    }
+
+    function setFocusPanelVisibility(visible) {
+        state.isFocusPanelOpen = Boolean(visible);
+        const personPanel = getEl("personPanel");
+        const hasFocusPerson = Boolean(graph.getPerson(graph.getFocus()));
+        personPanel.classList.toggle("hidden", !state.isFocusPanelOpen || !hasFocusPerson);
+    }
+
+    function syncViewerMobileActions() {
+        const actions = document.querySelector(".mobile-viewer-actions");
+        const backMenu = getEl("mobileBackToMenu");
+        const isViewer = state.mode === "viewer";
+        const showTreeActions = isViewer && !state.isMobileTreeFocus;
+        const showBackMenu = isViewer && state.isMobileTreeFocus;
+
+        if (actions) {
+            actions.classList.toggle("hidden", !showTreeActions);
+            actions.querySelectorAll("button").forEach((button) => {
+                button.disabled = !showTreeActions;
+            });
+        }
+
+        if (backMenu) {
+            backMenu.classList.toggle("hidden", !showBackMenu);
+            backMenu.querySelectorAll("button").forEach((button) => {
+                button.disabled = !showBackMenu;
+            });
+        }
+    }
+
+    function updateAccessCodeToggleUi() {
+        const toggle = getEl("toggleAccessCodeVisibility");
+        const input = getEl("accessCodeInput");
+        if (!toggle || !input) return;
+
+        const isVisible = input.type === "text";
+        toggle.classList.toggle("is-visible", isVisible);
+        toggle.setAttribute("aria-pressed", String(isVisible));
+        toggle.setAttribute("aria-label", t(isVisible ? "hideAccessCode" : "showAccessCode"));
     }
 
     function normalizeBioTranslations(value, fallback = "") {
@@ -888,6 +942,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (getRemoteAuthEnabled()) {
             getEl("accessHint").textContent = t("authRemoteHint");
         }
+        updateAccessCodeToggleUi();
         updateEmptyState();
         updateFocusPanel();
         renderProfileMapPlaces(graph.getPerson(graph.getFocus()));
@@ -926,6 +981,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const gate = getEl("accessGate");
         const input = getEl("accessCodeInput");
         const unlockBtn = getEl("unlockBtn");
+        const toggleBtn = getEl("toggleAccessCodeVisibility");
         const hint = getEl("accessHint");
 
         if (hint && getRemoteAuthEnabled()) {
@@ -947,6 +1003,14 @@ document.addEventListener("DOMContentLoaded", () => {
         input.addEventListener("keydown", (event) => {
             if (event.key === "Enter") unlockWithCode();
         });
+        toggleBtn.addEventListener("click", () => {
+            input.type = input.type === "password" ? "text" : "password";
+            updateAccessCodeToggleUi();
+            input.focus();
+            const length = input.value.length;
+            input.setSelectionRange(length, length);
+        });
+        updateAccessCodeToggleUi();
 
         if (state.mode) {
             gate.classList.add("hidden");
@@ -980,9 +1044,13 @@ document.addEventListener("DOMContentLoaded", () => {
         state.mode = finalMode;
         state.pendingMode = finalMode;
         persistMode();
+        state.isMobileTreeFocus = false;
+        setFocusPanelVisibility(false);
         updateModeUi();
         getEl("accessGate").classList.add("hidden");
         input.value = "";
+        input.type = "password";
+        updateAccessCodeToggleUi();
         showCustomAlert(isAdminMode() ? t("accessAdminReady") : t("accessViewerReady"));
         updateFocusPanel();
         if (finalMode === "viewer") {
@@ -1011,9 +1079,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setMobileTreeFocus(enabled) {
-        if (window.innerWidth > 768) return;
-        document.body.classList.toggle("mobile-tree-focus", enabled);
-        getEl("mobileBackToMenu").classList.toggle("hidden", !enabled || state.mode !== "viewer");
+        if (window.innerWidth > 768) {
+            state.isMobileTreeFocus = false;
+            syncViewerMobileActions();
+            return;
+        }
+        const nextState = Boolean(enabled && state.mode === "viewer");
+        state.isMobileTreeFocus = nextState;
+        document.body.classList.toggle("mobile-tree-focus", nextState);
+        if (nextState) {
+            setFocusPanelVisibility(false);
+            getEl("fullProfileModal").classList.add("hidden");
+        }
+        syncViewerMobileActions();
+        suppressNodeSelection(260);
         updateMobileViewportMetrics();
         render(false);
     }
@@ -1123,7 +1202,7 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("emptyStateCreateBtn").addEventListener("click", () => getEl("createPersonBtn").click());
         getEl("emptyStateGuideBtn").addEventListener("click", centerCurrentFocus);
         getEl("closePersonPanel").addEventListener("click", () => {
-            getEl("personPanel").classList.add("hidden");
+            setFocusPanelVisibility(false);
             isMovingCamera = false;
         });
         getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.15));
@@ -1132,6 +1211,8 @@ document.addEventListener("DOMContentLoaded", () => {
             state.mode = null;
             persistMode();
             state.pendingMode = "viewer";
+            state.isMobileTreeFocus = false;
+            setFocusPanelVisibility(false);
             updateModeUi();
             updateAccessModeButtons();
             setMobileTreeFocus(false);
@@ -1177,13 +1258,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateMobileViewportMetrics() {
         const topBar = document.querySelector(".top-bar");
-        const topBarHeight = document.body.classList.contains("mobile-tree-focus")
+        const topBarHeight = state.isMobileTreeFocus
             ? 0
             : (topBar ? Math.ceil(topBar.getBoundingClientRect().height) : 0);
         document.documentElement.style.setProperty("--top-ui-height", `${topBarHeight}px`);
-        if (window.innerWidth > 768 && document.body.classList.contains("mobile-tree-focus")) {
+        if (window.innerWidth > 768 && state.isMobileTreeFocus) {
+            state.isMobileTreeFocus = false;
             document.body.classList.remove("mobile-tree-focus");
-            getEl("mobileBackToMenu").classList.add("hidden");
+            syncViewerMobileActions();
         }
     }
 
@@ -1202,8 +1284,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function initProfileModal() {
         const closeProfileModal = () => {
             getEl("fullProfileModal").classList.add("hidden");
-            if (window.innerWidth < 768 && state.mode === "viewer") {
-                getEl("personPanel").classList.remove("hidden");
+            if (window.innerWidth < 768 && state.mode === "viewer" && !state.isMobileTreeFocus) {
+                setFocusPanelVisibility(true);
             }
         };
         getEl("closeFullProfile").addEventListener("click", closeProfileModal);
@@ -1331,7 +1413,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateEmptyState() {
         const isEmpty = graph.people.size === 0;
         getEl("emptyState").classList.toggle("hidden", !isEmpty);
-        if (isEmpty) getEl("personPanel").classList.add("hidden");
+        if (isEmpty) setFocusPanelVisibility(false);
         updateTreeStats();
     }
 
@@ -1346,9 +1428,10 @@ document.addEventListener("DOMContentLoaded", () => {
         selectPerson(focusId, true);
     }
 
-    function selectPerson(id, autoCenter = false) {
+    function selectPerson(id, autoCenter = false, revealPanel = true) {
         if (!id) return;
         graph.setFocus(id);
+        if (revealPanel) setFocusPanelVisibility(true);
         updateFocusPanel();
         render(autoCenter);
     }
@@ -1370,7 +1453,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const viewerCloseBtn = getEl("closeProfileViewerBtn");
         viewerCloseBtn.classList.toggle("hidden", isAdminMode());
-        getEl("mobileBackToMenu").classList.toggle("hidden", !document.body.classList.contains("mobile-tree-focus") || state.mode !== "viewer");
+        syncViewerMobileActions();
         updateReadonlyFields();
     }
 
@@ -1408,13 +1491,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateFocusPanel() {
         const person = graph.getPerson(graph.getFocus());
         if (!person) {
-            getEl("personPanel").classList.add("hidden");
+            setFocusPanelVisibility(false);
             return;
         }
 
-        getEl("personPanel").classList.remove("hidden");
-        getEl("panelAvatar").src = person.photo || DEFAULT_AVATAR;
-        getEl("panelAvatar").onclick = () => openImageLightbox(person.photo || DEFAULT_AVATAR);
+        setFocusPanelVisibility(state.isFocusPanelOpen);
+        getEl("panelAvatar").src = getPhotoSrc(person.photo);
+        getEl("panelAvatar").onclick = () => openImageLightbox(getPhotoSrc(person.photo));
         getEl("personNameInput").value = person.name || "";
         getEl("quickBirth").value = person.birthDate || "—";
         getEl("quickDeath").value = person.isAlive !== false && !person.deathDate ? t("aliveShort") : (person.deathDate || "—");
@@ -1721,11 +1804,12 @@ document.addEventListener("DOMContentLoaded", () => {
         photoRing.setAttribute("class", "node-photo-ring");
 
         const photo = document.createElementNS("http://www.w3.org/2000/svg", "image");
-        photo.setAttribute("href", person.photo || DEFAULT_AVATAR);
+        photo.setAttribute("href", getPhotoSrc(person.photo));
         photo.setAttribute("x", String(-metrics.photoRadius + 3));
         photo.setAttribute("y", String(metrics.photoYOffset - metrics.photoRadius + 3));
         photo.setAttribute("width", String(metrics.photoRadius * 2 - 6));
         photo.setAttribute("height", String(metrics.photoRadius * 2 - 6));
+        photo.setAttribute("preserveAspectRatio", "xMidYMid slice");
         photo.setAttribute("clip-path", `circle(${metrics.photoRadius - 3}px at ${metrics.photoRadius - 3}px ${metrics.photoRadius - 3}px)`);
 
         const name = createText(0, metrics.textStartY, "node-name", shortenText(person.name || t("noName"), window.innerWidth < 768 ? 16 : 22));
@@ -1760,7 +1844,6 @@ document.addEventListener("DOMContentLoaded", () => {
             event.stopPropagation();
             if (Date.now() < suppressNodeSelectionUntil) return;
             if (!isMovingCamera) {
-                getEl("personPanel").classList.remove("hidden");
                 selectPerson(id, true);
             }
         }, { passive: true });
@@ -2034,10 +2117,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const person = graph.getPerson(graph.getFocus());
         if (!person) return;
 
+        setFocusPanelVisibility(false);
         getEl("fName").value = person.name || "";
         getEl("fMaidenName").value = person.maidenName || "";
-        getEl("modalAvatarPreview").src = person.photo || DEFAULT_AVATAR;
-        getEl("modalAvatarPreview").onclick = () => openImageLightbox(person.photo || DEFAULT_AVATAR);
+        getEl("modalAvatarPreview").src = getPhotoSrc(person.photo);
+        getEl("modalAvatarPreview").onclick = () => openImageLightbox(getPhotoSrc(person.photo));
         getEl("fBirth").value = person.birthDate || "";
         getEl("fDeath").value = person.deathDate || "";
         state.draftDetailsTranslations = normalizeDetailsTranslations(person.detailsTranslations, {
@@ -2161,7 +2245,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (deathPicker && deathPicker._input) deathPicker._input.disabled = isAlive || readonly;
     }
 
-    function exportPng() {
+    async function exportPng() {
         if (!graph.people.size) {
             showCustomAlert(t("addFirstPerson"));
             return;
@@ -2179,45 +2263,61 @@ document.addEventListener("DOMContentLoaded", () => {
             const height = Math.max(420, Math.ceil(bbox.height + padding * 2));
             const style = getComputedStyle(document.documentElement);
             const bg = style.getPropertyValue("--bg").trim() || "#eef1e8";
+            const pixelRatio = Math.max(2, Math.min(4, Math.ceil(window.devicePixelRatio || 1)));
 
             const svgClone = svg.cloneNode(true);
+            svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
             svgClone.setAttribute("width", width);
             svgClone.setAttribute("height", height);
             svgClone.setAttribute("viewBox", `0 0 ${width} ${height}`);
             svgClone.querySelector("#scene").setAttribute("transform", `translate(${-bbox.x + padding}, ${-bbox.y + padding})`);
+            svgClone.querySelectorAll("image").forEach((node) => {
+                const href = node.getAttribute("href");
+                if (href) node.setAttributeNS("http://www.w3.org/1999/xlink", "href", href);
+                node.setAttribute("preserveAspectRatio", "xMidYMid slice");
+            });
 
             const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
             styleElement.textContent = getExportStyles();
             svgClone.insertBefore(styleElement, svgClone.firstChild);
 
             const svgData = new XMLSerializer().serializeToString(svgClone);
-            const image = new Image();
-            image.onload = () => {
-                const canvas = document.createElement("canvas");
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext("2d");
-                ctx.fillStyle = bg;
-                ctx.fillRect(0, 0, width, height);
-                ctx.drawImage(image, 0, 0);
+            const image = await new Promise((resolve, reject) => {
+                const exportImage = new Image();
+                exportImage.decoding = "sync";
+                exportImage.onload = () => resolve(exportImage);
+                exportImage.onerror = reject;
+                exportImage.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
+            });
 
-                const link = document.createElement("a");
-                link.download = `Shedjere-${Date.now()}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-                btn.textContent = originalText;
-                btn.disabled = false;
-            };
+            const canvas = document.createElement("canvas");
+            canvas.width = width * pixelRatio;
+            canvas.height = height * pixelRatio;
+            const ctx = canvas.getContext("2d");
+            ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(image, 0, 0, width, height);
 
-            image.onerror = () => {
-                showCustomAlert(t("exportFail"));
-                btn.textContent = originalText;
-                btn.disabled = false;
-            };
+            const blob = await new Promise((resolve, reject) => {
+                canvas.toBlob((result) => {
+                    if (result) resolve(result);
+                    else reject(new Error("PNG export failed"));
+                }, "image/png");
+            });
 
-            image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
+            const link = document.createElement("a");
+            const blobUrl = URL.createObjectURL(blob);
+            link.download = `Shedjere-${Date.now()}.png`;
+            link.href = blobUrl;
+            link.click();
+            window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
         } catch (error) {
             showCustomAlert(t("exportFail"));
+        } finally {
             btn.textContent = originalText;
             btn.disabled = false;
         }
@@ -2237,6 +2337,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .node-card { fill:${bg}; stroke:${line}; stroke-width:1.1; }
             .node-accent { fill:rgba(255,255,255,0.22); }
             .node-photo-ring { fill:${bg}; stroke:${accent}; stroke-width:3; }
+            image { image-rendering:auto; }
             .node-name { fill:${text}; font-family:Manrope, Arial, sans-serif; font-weight:800; font-size:13px; }
             .node-meta, .node-story { fill:${muted}; font-family:Manrope, Arial, sans-serif; font-weight:600; font-size:11px; }
             .node-story { font-size:10px; }

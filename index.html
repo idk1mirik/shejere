@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -403,14 +403,28 @@
             <h3 data-i18n="feedbackModalTitle">Предложить правку</h3>
             <p class="guide-copy" data-i18n="feedbackModalText">Если заметили ошибку или хотите дополнить историю семьи, отправьте сообщение владельцу сайта.</p>
             <div class="feedback-email-card">
-                <span class="feedback-email-label" data-i18n="feedbackEmailLabel">Почта для связи</span>
+                <span class="feedback-email-label" data-i18n="feedbackEmailLabel">РџРѕС‡С‚Р° РґР»СЏ СЃРІСЏР·Рё</span>
                 <strong id="feedbackEmailValue" class="feedback-email-value">mmirkamalov0210@gmail.com</strong>
             </div>
+            <div class="feedback-form">
+                <div class="flex-col">
+                    <label class="input-label" for="feedbackPersonInput" data-i18n="feedbackMailPerson">Рћ РєРѕРј РёРґРµС‚ СЂРµС‡СЊ</label>
+                    <input type="text" id="feedbackPersonInput" class="neomorph-input" data-i18n-placeholder="feedbackPersonPlaceholder" placeholder="РРјСЏ СЂРѕРґСЃС‚РІРµРЅРЅРёРєР°">
+                </div>
+                <div class="flex-col">
+                    <label class="input-label" for="feedbackMessageInput" data-i18n="feedbackMailChange">Р§С‚Рѕ РЅСѓР¶РЅРѕ РёР·РјРµРЅРёС‚СЊ РёР»Рё РґРѕР±Р°РІРёС‚СЊ</label>
+                    <textarea id="feedbackMessageInput" class="neomorph-input feedback-textarea" data-i18n-placeholder="feedbackMessagePlaceholder" placeholder="РќР°РїРёС€РёС‚Рµ, С‡С‚Рѕ РґРѕР±Р°РІРёС‚СЊ РёР»Рё РёСЃРїСЂР°РІРёС‚СЊ"></textarea>
+                </div>
+                <div class="flex-col">
+                    <label class="input-label" for="feedbackContactInput" data-i18n="feedbackMailContact">РњРѕР№ РєРѕРЅС‚Р°РєС‚ РґР»СЏ СѓС‚РѕС‡РЅРµРЅРёСЏ</label>
+                    <input type="text" id="feedbackContactInput" class="neomorph-input" data-i18n-placeholder="feedbackContactPlaceholder" placeholder="РўРµР»РµС„РѕРЅ, email РёР»Рё Telegram">
+                </div>
+            </div>
             <div class="modal-actions feedback-actions">
-                <button id="openFeedbackGmailBtn" class="glass-btn accent-fill" type="button" data-i18n="openGmail">Открыть Gmail</button>
-                <button id="copyFeedbackEmailBtn" class="glass-btn" type="button" data-i18n="copyEmail">Скопировать почту</button>
-                <button id="copyFeedbackTextBtn" class="glass-btn" type="button" data-i18n="copyTemplate">Скопировать текст</button>
-                <button id="closeFeedbackModalBtn" class="glass-btn" type="button" data-i18n="close">Закрыть</button>
+                <button id="openFeedbackMailBtn" class="glass-btn accent-fill" type="button" data-i18n="openMailApp">РќР°РїРёСЃР°С‚СЊ РїРёСЃСЊРјРѕ</button>
+                <button id="openFeedbackGmailBtn" class="glass-btn accent-fill" type="button" data-i18n="openGmail">РћС‚РєСЂС‹С‚СЊ Gmail</button>
+                <button id="copyFeedbackTextBtn" class="glass-btn" type="button" data-i18n="copyTemplate">РЎРєРѕРїРёСЂРѕРІР°С‚СЊ С‚РµРєСЃС‚</button>
+                <button id="closeFeedbackModalBtn" class="glass-btn" type="button" data-i18n="close">Р—Р°РєСЂС‹С‚СЊ</button>
             </div>
         </div>
     </div>

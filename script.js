@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
     const STORAGE_KEY = "shedjere-family-tree-v2";
     const SETTINGS_KEY = "shedjere-ui-settings-v2";
     const SESSION_MODE_KEY = "shedjere-session-mode";
@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
             modeLabel: "Режим",
             treeLabel: "Древо",
             tipLabel: "Подсказка",
-            tipAdmin: "Админ может редактировать карточки и связи",
-            tipViewer: "Гости могут смотреть без редактирования",
+            tipAdmin: "Нажмите на карточку человека чтобы открыть анкету и править данные.",
+            tipViewer: "Нажмите на карточку человека чтобы открыть анкету и посмотреть историю.",
             viewerMode: "Только просмотр",
             adminMode: "Админ",
             treeStatsLabel: "чел.",
@@ -294,8 +294,8 @@ document.addEventListener("DOMContentLoaded", () => {
             modeLabel: "Rejim",
             treeLabel: "Daraxt",
             tipLabel: "Maslahat",
-            tipAdmin: "Admin kartochka va bog'lanishlarni tahrirlay oladi",
-            tipViewer: "Mehmonlar faqat ko'rishi mumkin",
+            tipAdmin: "Нажмите на карточку человека чтобы открыть анкету и править данные.",
+            tipViewer: "Нажмите на карточку человека чтобы открыть анкету и посмотреть историю.",
             viewerMode: "Faqat ko'rish",
             adminMode: "Admin",
             treeStatsLabel: "odam",
@@ -457,8 +457,8 @@ document.addEventListener("DOMContentLoaded", () => {
             modeLabel: "Mode",
             treeLabel: "Tree",
             tipLabel: "Tip",
-            tipAdmin: "Admin can edit cards and relationships",
-            tipViewer: "Guests can browse without editing",
+            tipAdmin: "Нажмите на карточку человека чтобы открыть анкету и править данные.",
+            tipViewer: "Нажмите на карточку человека чтобы открыть анкету и посмотреть историю.",
             viewerMode: "Read only",
             adminMode: "Admin",
             treeStatsLabel: "people",
@@ -575,6 +575,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let initialPinchDistance = null;
     let initialZoom = 1;
     let suppressNodeSelectionUntil = 0;
+    let cameraAnimationFrame = null;
 
     const birthPicker = initDatePicker("#fBirth");
     const deathPicker = initDatePicker("#fDeath");
@@ -1340,18 +1341,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function buildFeedbackDraft() {
         const focusedPerson = graph.getPerson(graph.getFocus());
+        const personValue = getEl("feedbackPersonInput")?.value.trim() || focusedPerson?.name || "—";
+        const messageValue = getEl("feedbackMessageInput")?.value.trim() || "";
+        const contactValue = getEl("feedbackContactInput")?.value.trim() || "";
         return {
             subject: t("feedbackMailSubject"),
             body: [
-            t("feedbackMailIntro"),
-            "",
-            `${t("feedbackMailPerson")}: ${focusedPerson?.name || "—"}`,
-            `${t("feedbackMailChange")}:`,
-            "",
-            "",
-            `${t("feedbackMailContact")}:`
+                t("feedbackMailIntro"),
+                "",
+                `${t("feedbackMailPerson")}: ${personValue}`,
+                `${t("feedbackMailChange")}:`,
+                messageValue || "—",
+                "",
+                `${t("feedbackMailContact")}: ${contactValue || "—"}`
             ].join("\n")
         };
+    }
+
+    function fillFeedbackForm() {
+        const focusedPerson = graph.getPerson(graph.getFocus());
+        const personInput = getEl("feedbackPersonInput");
+        if (personInput && !personInput.value.trim()) personInput.value = focusedPerson?.name || "";
     }
 
     async function copyTextToClipboard(value) {
@@ -1374,6 +1384,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openFeedbackModal() {
         getEl("feedbackEmailValue").textContent = FEEDBACK_EMAIL;
+        fillFeedbackForm();
         getEl("feedbackModal").classList.remove("hidden");
     }
 
@@ -1385,6 +1396,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const draft = buildFeedbackDraft();
         const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(FEEDBACK_EMAIL)}&su=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`;
         window.open(gmailUrl, "_blank", "noopener");
+    }
+
+    function openFeedbackMailApp() {
+        const draft = buildFeedbackDraft();
+        const mailtoUrl = `mailto:${encodeURIComponent(FEEDBACK_EMAIL)}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`;
+        window.location.href = mailtoUrl;
     }
 
     function updateAccessGateUi() {
@@ -1755,11 +1772,8 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("feedbackModal").addEventListener("click", (event) => {
             if (event.target.id === "feedbackModal") closeFeedbackModal();
         });
+        getEl("openFeedbackMailBtn").addEventListener("click", openFeedbackMailApp);
         getEl("openFeedbackGmailBtn").addEventListener("click", openFeedbackGmail);
-        getEl("copyFeedbackEmailBtn").addEventListener("click", async () => {
-            const copied = await copyTextToClipboard(FEEDBACK_EMAIL);
-            if (copied) showCustomAlert(t("emailCopied"));
-        });
         getEl("copyFeedbackTextBtn").addEventListener("click", async () => {
             const copied = await copyTextToClipboard(buildFeedbackDraft().body);
             if (copied) showCustomAlert(t("feedbackCopied"));
@@ -1932,6 +1946,44 @@ document.addEventListener("DOMContentLoaded", () => {
         scene.setAttribute("transform", `translate(${translateX}, ${translateY}) scale(${zoomLevel})`);
     }
 
+    function animateCameraTo(targetX, targetY, duration = 340) {
+        if (cameraAnimationFrame) {
+            cancelAnimationFrame(cameraAnimationFrame);
+            cameraAnimationFrame = null;
+        }
+
+        const startX = translateX;
+        const startY = translateY;
+        const deltaX = targetX - startX;
+        const deltaY = targetY - startY;
+
+        if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
+            translateX = targetX;
+            translateY = targetY;
+            updateTransform();
+            return;
+        }
+
+        const startTime = performance.now();
+        const easeOutCubic = (value) => 1 - Math.pow(1 - value, 3);
+
+        const frame = (now) => {
+            const progress = Math.min(1, (now - startTime) / duration);
+            const eased = easeOutCubic(progress);
+            translateX = startX + deltaX * eased;
+            translateY = startY + deltaY * eased;
+            updateTransform();
+
+            if (progress < 1) {
+                cameraAnimationFrame = requestAnimationFrame(frame);
+            } else {
+                cameraAnimationFrame = null;
+            }
+        };
+
+        cameraAnimationFrame = requestAnimationFrame(frame);
+    }
+
     function updateEmptyState() {
         const isEmpty = graph.people.size === 0;
         getEl("emptyState").classList.toggle("hidden", !isEmpty);
@@ -1955,6 +2007,10 @@ document.addEventListener("DOMContentLoaded", () => {
         graph.setFocus(id);
         if (revealPanel) setFocusPanelVisibility(true);
         updateFocusPanel();
+        if (!getEl("feedbackModal").classList.contains("hidden")) {
+            const personInput = getEl("feedbackPersonInput");
+            if (personInput) personInput.value = graph.getPerson(id)?.name || "";
+        }
         render(autoCenter);
     }
 
@@ -2120,27 +2176,28 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (autoCenter && coords[focusId]) {
-            translateX = window.innerWidth / 2 - coords[focusId].x * zoomLevel;
-            translateY = window.innerHeight / 2 - coords[focusId].y * zoomLevel;
+            const targetX = window.innerWidth / 2 - coords[focusId].x * zoomLevel;
+            const targetY = window.innerHeight / 2 - coords[focusId].y * zoomLevel;
+            animateCameraTo(targetX, targetY);
+        } else {
+            updateTransform();
         }
-
-        updateTransform();
         updateEmptyState();
     }
 
     function getLayoutMetrics() {
         const mobile = window.innerWidth < 768;
         return {
-            nodeWidth: mobile ? 174 : 204,
-            nodeHeight: mobile ? 144 : 152,
+            nodeWidth: mobile ? 182 : 216,
+            nodeHeight: mobile ? 156 : 168,
             nodeRadius: mobile ? 26 : 28,
-            cardGap: mobile ? 20 : 30,
-            spouseGap: mobile ? 20 : 26,
-            verticalGap: mobile ? 206 : 232,
+            cardGap: mobile ? 28 : 42,
+            spouseGap: mobile ? 28 : 34,
+            verticalGap: mobile ? 228 : 270,
             photoRadius: mobile ? 29 : 32,
-            photoYOffset: mobile ? -20 : -22,
-            textStartY: mobile ? 18 : 22,
-            storyY: mobile ? 60 : 64
+            photoYOffset: mobile ? -24 : -26,
+            textStartY: mobile ? 30 : 34,
+            storyY: mobile ? 82 : 88
         };
     }
 
@@ -2168,7 +2225,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const coords = {};
-        const groupGap = metrics.cardGap * 1.4;
+        const groupGap = metrics.cardGap * 1.7;
         const orderedLevels = Array.from(levels.keys()).sort((left, right) => {
             const leftDistance = Math.abs(left);
             const rightDistance = Math.abs(right);
@@ -2334,9 +2391,9 @@ document.addEventListener("DOMContentLoaded", () => {
         photo.setAttribute("preserveAspectRatio", "xMidYMid slice");
         photo.setAttribute("clip-path", `circle(${metrics.photoRadius - 3}px at ${metrics.photoRadius - 3}px ${metrics.photoRadius - 3}px)`);
 
-        const name = createText(0, metrics.textStartY, "node-name", shortenText(person.name || t("noName"), window.innerWidth < 768 ? 16 : 22));
-        const years = createText(0, metrics.textStartY + 22, "node-meta", getYearsLabel(person));
-        const story = createText(0, metrics.storyY, "node-story", shortenText(getNodeMiniStory(person), window.innerWidth < 768 ? 20 : 28));
+        const name = createText(0, metrics.textStartY, "node-name", shortenText(person.name || t("noName"), window.innerWidth < 768 ? 18 : 24));
+        const years = createText(0, metrics.textStartY + 26, "node-meta", getYearsLabel(person));
+        const story = createText(0, metrics.storyY, "node-story", shortenText(getNodeMiniStory(person), window.innerWidth < 768 ? 22 : 30));
 
         group.append(glow, card, accent, photoRing, photo, name, years, story);
 
@@ -2382,6 +2439,7 @@ document.addEventListener("DOMContentLoaded", () => {
         node.setAttribute("x", String(x));
         node.setAttribute("y", String(y));
         node.setAttribute("text-anchor", "middle");
+        node.setAttribute("dominant-baseline", "middle");
         node.setAttribute("class", className);
         node.textContent = text;
         return node;

@@ -11,11 +11,20 @@ document.addEventListener("DOMContentLoaded", () => {
         viewer: "guests123"
     };
     const REMOTE_AUTH_CONFIG = window.SHEDJERE_AUTH || null;
+    const SUPABASE_CONFIG = window.SHEDJERE_SUPABASE || null;
+    const CLOUD_TREE_TABLE = "family_tree_states";
+    const CLOUD_ROLE_TABLE = "family_tree_roles";
+    const CLOUD_TREE_SLUG = (SUPABASE_CONFIG && SUPABASE_CONFIG.treeSlug) || "main-family-tree";
+    const FEEDBACK_EMAIL = "mmirkamalov0210@gmail.com";
 
     const graph = new FamilyGraph();
     const scene = document.getElementById("scene");
     const svg = document.getElementById("viewport");
     const getEl = (id) => document.getElementById(id);
+    let supabaseClient = null;
+    let remoteSaveTimer = null;
+    let remoteSaveInFlight = false;
+    let remoteSaveQueued = false;
 
     const themes = [
         { name: "default", labelKey: "themeDefault", color: "#eef1e8" },
@@ -96,6 +105,15 @@ document.addEventListener("DOMContentLoaded", () => {
             accessPlaceholder: "Введите код",
             showAccessCode: "Показать код",
             hideAccessCode: "Скрыть код",
+            adminEmailLabel: "Email администратора",
+            adminEmailPlaceholder: "you@example.com",
+            adminPasswordPlaceholder: "Введите пароль",
+            showPassword: "Показать пароль",
+            hidePassword: "Скрыть пароль",
+            adminLogin: "Войти в админку",
+            adminCloudHint: "Безопасный вход администратора работает через Supabase.",
+            adminAuthHint: "Для редактирования войдите через email и пароль администратора.",
+            viewerCloudHint: "Гостевой код нужен только для входа на просмотр. Он не заменяет настоящую защиту.",
             unlock: "Открыть",
             enterAdmin: "Войти как админ",
             enterViewer: "Войти как гость",
@@ -103,6 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
             accessDenied: "Неверный код доступа.",
             accessAdminReady: "Режим администратора активирован.",
             accessViewerReady: "Гостевой режим активирован.",
+            adminLoginFailed: "Не удалось войти как администратор. Проверь email и пароль.",
+            adminRoleDenied: "Этот аккаунт не имеет права редактировать дерево.",
+            cloudLoadFail: "Не удалось загрузить дерево из облака. Оставил локальную копию.",
+            cloudSaveFail: "Не удалось сохранить изменения в облако.",
+            cloudSyncReady: "Облачная синхронизация включена.",
+            cloudSdkMissing: "Не удалось подключить Supabase. Проверь интернет и адрес проекта в конфиге.",
             switchMode: "Сменить режим",
             modeLabel: "Режим",
             treeLabel: "Древо",
@@ -139,6 +163,20 @@ document.addEventListener("DOMContentLoaded", () => {
             authRemoteHint: "Можно подключить серверную проверку кода через auth-config.js.",
             familyStory: "История рода",
             familyStoryText: "Короткий обзор по людям, фамилиям, местам и незаполненным данным.",
+            suggestUpdate: "Предложить правку",
+            feedbackMailSubject: "Предложение по семейному древу",
+            feedbackMailIntro: "Здравствуйте! Хочу предложить изменение или дополнение для семейного древа.",
+            feedbackMailPerson: "О ком идет речь",
+            feedbackMailChange: "Что нужно изменить или добавить",
+            feedbackMailContact: "Мой контакт для уточнения",
+            feedbackModalTitle: "Предложить правку",
+            feedbackModalText: "Если заметили ошибку или хотите дополнить историю семьи, отправьте сообщение владельцу сайта.",
+            feedbackEmailLabel: "Почта для связи",
+            openGmail: "Открыть Gmail",
+            copyEmail: "Скопировать почту",
+            copyTemplate: "Скопировать текст",
+            emailCopied: "Почта скопирована.",
+            feedbackCopied: "Текст для сообщения скопирован.",
             timelineLabel: "Хронология жизни",
             timelineHint: "По одному событию на строку: рождение, переезд, учёба, брак, служба и так далее.",
             mediaLinksLabel: "Фото и документы",
@@ -230,6 +268,15 @@ document.addEventListener("DOMContentLoaded", () => {
             accessPlaceholder: "Kod kiriting",
             showAccessCode: "Kodni ko'rsatish",
             hideAccessCode: "Kodni yashirish",
+            adminEmailLabel: "Administrator emaili",
+            adminEmailPlaceholder: "you@example.com",
+            adminPasswordPlaceholder: "Parolni kiriting",
+            showPassword: "Parolni ko'rsatish",
+            hidePassword: "Parolni yashirish",
+            adminLogin: "Admin panelga kirish",
+            adminCloudHint: "Administratorning xavfsiz kirishi Supabase orqali ishlaydi.",
+            adminAuthHint: "Tahrirlash uchun administrator emaili va paroli bilan kiring.",
+            viewerCloudHint: "Mehmon kodi faqat ko'rish rejimiga kirish uchun. Bu haqiqiy himoya o'rnini bosa olmaydi.",
             unlock: "Ochish",
             enterAdmin: "Admin sifatida kirish",
             enterViewer: "Mehmon sifatida kirish",
@@ -237,6 +284,12 @@ document.addEventListener("DOMContentLoaded", () => {
             accessDenied: "Kirish kodi noto'g'ri.",
             accessAdminReady: "Administrator rejimi yoqildi.",
             accessViewerReady: "Mehmon rejimi yoqildi.",
+            adminLoginFailed: "Administrator sifatida kirib bo'lmadi. Email va parolni tekshiring.",
+            adminRoleDenied: "Bu akkaunt daraxtni tahrirlash huquqiga ega emas.",
+            cloudLoadFail: "Bulutdan daraxtni yuklab bo'lmadi. Mahalliy nusxa qoldirildi.",
+            cloudSaveFail: "O'zgarishlarni bulutga saqlab bo'lmadi.",
+            cloudSyncReady: "Bulutli sinxronizatsiya yoqildi.",
+            cloudSdkMissing: "Supabase ulanmagan. Internet va konfiguratsiyadagi loyiha manzilini tekshiring.",
             switchMode: "Rejimni almashtirish",
             modeLabel: "Rejim",
             treeLabel: "Daraxt",
@@ -273,6 +326,20 @@ document.addEventListener("DOMContentLoaded", () => {
             authRemoteHint: "Server tomondagi kod tekshiruvini auth-config.js orqali ulash mumkin.",
             familyStory: "Urug' hikoyasi",
             familyStoryText: "Odamlar, familiyalar, joylar va to'ldirilmagan ma'lumotlar bo'yicha qisqa ko'rinish.",
+            suggestUpdate: "Tuzatish taklif qilish",
+            feedbackMailSubject: "Nasab daraxti bo'yicha taklif",
+            feedbackMailIntro: "Salom! Nasab daraxtiga o'zgartirish yoki qo'shimcha taklif qilmoqchiman.",
+            feedbackMailPerson: "Gap qaysi odam haqida ketmoqda",
+            feedbackMailChange: "Nimani o'zgartirish yoki qo'shish kerak",
+            feedbackMailContact: "Aniqlashtirish uchun mening kontaktim",
+            feedbackModalTitle: "Tuzatish taklif qilish",
+            feedbackModalText: "Agar xatoni ko'rsangiz yoki oilaviy tarixni to'ldirmoqchi bo'lsangiz, sayt egasiga xabar yuboring.",
+            feedbackEmailLabel: "Bog'lanish uchun pochta",
+            openGmail: "Gmailni ochish",
+            copyEmail: "Pochtani nusxalash",
+            copyTemplate: "Matnni nusxalash",
+            emailCopied: "Pochta nusxalandi.",
+            feedbackCopied: "Xabar matni nusxalandi.",
             timelineLabel: "Hayot xronologiyasi",
             timelineHint: "Har satrga bitta voqea yozing: tug'ilish, ko'chish, o'qish, nikoh, xizmat va boshqalar.",
             mediaLinksLabel: "Foto va hujjatlar",
@@ -364,6 +431,15 @@ document.addEventListener("DOMContentLoaded", () => {
             accessPlaceholder: "Enter code",
             showAccessCode: "Show code",
             hideAccessCode: "Hide code",
+            adminEmailLabel: "Administrator email",
+            adminEmailPlaceholder: "you@example.com",
+            adminPasswordPlaceholder: "Enter password",
+            showPassword: "Show password",
+            hidePassword: "Hide password",
+            adminLogin: "Sign in as admin",
+            adminCloudHint: "Secure administrator sign-in runs through Supabase.",
+            adminAuthHint: "Use the administrator email and password to unlock editing.",
+            viewerCloudHint: "The guest code only opens viewing mode. It is not a real privacy wall.",
             unlock: "Unlock",
             enterAdmin: "Enter as admin",
             enterViewer: "Enter as guest",
@@ -371,6 +447,12 @@ document.addEventListener("DOMContentLoaded", () => {
             accessDenied: "Invalid access code.",
             accessAdminReady: "Administrator mode enabled.",
             accessViewerReady: "Viewer mode enabled.",
+            adminLoginFailed: "Could not sign in as administrator. Check the email and password.",
+            adminRoleDenied: "This account is not allowed to edit the tree.",
+            cloudLoadFail: "Could not load the tree from the cloud. Kept the local copy.",
+            cloudSaveFail: "Could not save the latest changes to the cloud.",
+            cloudSyncReady: "Cloud sync is enabled.",
+            cloudSdkMissing: "Could not connect to Supabase. Check your internet connection and project URL.",
             switchMode: "Switch mode",
             modeLabel: "Mode",
             treeLabel: "Tree",
@@ -407,6 +489,20 @@ document.addEventListener("DOMContentLoaded", () => {
             authRemoteHint: "You can connect server-side code validation through auth-config.js.",
             familyStory: "Family story",
             familyStoryText: "A short overview of people, surnames, places and missing details.",
+            suggestUpdate: "Suggest an edit",
+            feedbackMailSubject: "Suggestion for the family tree",
+            feedbackMailIntro: "Hello! I would like to suggest a change or addition for the family tree.",
+            feedbackMailPerson: "Person concerned",
+            feedbackMailChange: "What should be changed or added",
+            feedbackMailContact: "My contact for follow-up",
+            feedbackModalTitle: "Suggest an edit",
+            feedbackModalText: "If you notice an error or want to add family history details, send a message to the site owner.",
+            feedbackEmailLabel: "Contact email",
+            openGmail: "Open Gmail",
+            copyEmail: "Copy email",
+            copyTemplate: "Copy message",
+            emailCopied: "Email copied.",
+            feedbackCopied: "Message template copied.",
             timelineLabel: "Life timeline",
             timelineHint: "One event per line: birth, move, studies, marriage, service and so on.",
             mediaLinksLabel: "Photos and documents",
@@ -460,7 +556,9 @@ document.addEventListener("DOMContentLoaded", () => {
         draftDetailsTranslations: null,
         activeMapQuery: "",
         isFocusPanelOpen: false,
-        isMobileTreeFocus: false
+        isMobileTreeFocus: false,
+        cloudSyncEnabled: false,
+        cloudDataLoaded: false
     };
 
     let translateX = window.innerWidth / 2;
@@ -497,6 +595,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateModeUi();
     updateMobileViewportMetrics();
     render(true);
+    void initCloudAccess();
 
     function t(key) {
         return translations[state.language][key] || translations.ru[key] || key;
@@ -567,6 +666,222 @@ document.addEventListener("DOMContentLoaded", () => {
         toggle.classList.toggle("is-visible", isVisible);
         toggle.setAttribute("aria-pressed", String(isVisible));
         toggle.setAttribute("aria-label", t(isVisible ? "hideAccessCode" : "showAccessCode"));
+    }
+
+    function updatePasswordToggleUi(toggleId, inputId, showKey = "showPassword", hideKey = "hidePassword") {
+        const toggle = getEl(toggleId);
+        const input = getEl(inputId);
+        if (!toggle || !input) return;
+
+        const isVisible = input.type === "text";
+        toggle.classList.toggle("is-visible", isVisible);
+        toggle.setAttribute("aria-pressed", String(isVisible));
+        toggle.setAttribute("aria-label", t(isVisible ? hideKey : showKey));
+    }
+
+    function getSupabaseProjectUrl() {
+        if (!SUPABASE_CONFIG || !SUPABASE_CONFIG.url) return "";
+        return String(SUPABASE_CONFIG.url)
+            .replace(/\/+$/, "")
+            .replace(/\/rest\/v1$/i, "");
+    }
+
+    function getSupabaseConfigured() {
+        return Boolean(
+            SUPABASE_CONFIG &&
+            getSupabaseProjectUrl() &&
+            SUPABASE_CONFIG.anonKey
+        );
+    }
+
+    function getSupabaseEnabled() {
+        return Boolean(
+            getSupabaseConfigured() &&
+            window.supabase &&
+            typeof window.supabase.createClient === "function"
+        );
+    }
+
+    function initSupabaseClient() {
+        if (!getSupabaseEnabled()) return null;
+        if (!supabaseClient) {
+            supabaseClient = window.supabase.createClient(getSupabaseProjectUrl(), SUPABASE_CONFIG.anonKey, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            });
+        }
+        return supabaseClient;
+    }
+
+    async function initCloudAccess() {
+        if (!getSupabaseEnabled()) return;
+
+        try {
+            await loadRemoteGraph(false);
+        } catch (error) {
+            showCustomAlert(t("cloudLoadFail"));
+        }
+
+        try {
+            const client = initSupabaseClient();
+            const { data } = await client.auth.getSession();
+            if (!data || !data.session) {
+                if (state.mode === "admin") {
+                    state.mode = null;
+                    persistMode();
+                    updateModeUi();
+                    getEl("accessGate").classList.remove("hidden");
+                }
+                updateAccessModeButtons();
+                updateAccessGateUi();
+                return;
+            }
+
+            const role = await getCloudRole();
+            if (role !== "admin") {
+                await client.auth.signOut();
+                state.mode = null;
+                persistMode();
+                updateModeUi();
+                getEl("accessGate").classList.remove("hidden");
+                updateAccessModeButtons();
+                updateAccessGateUi();
+                return;
+            }
+
+            state.cloudSyncEnabled = true;
+            state.pendingMode = "admin";
+            await applyAccessMode("admin", false, true);
+        } catch (error) {
+            showCustomAlert(t("cloudLoadFail"));
+        }
+    }
+
+    async function loadRemoteGraph(showToastOnFail = true) {
+        const client = initSupabaseClient();
+        if (!client) return false;
+
+        const { data, error } = await client
+            .from(CLOUD_TREE_TABLE)
+            .select("data")
+            .eq("slug", CLOUD_TREE_SLUG)
+            .maybeSingle();
+
+        if (error) {
+            if (showToastOnFail) showCustomAlert(t("cloudLoadFail"));
+            return false;
+        }
+
+        if (!data || !data.data) return false;
+
+        graph.load(data.data);
+        state.cloudDataLoaded = true;
+        render(true);
+        updateFocusPanel();
+        updateEmptyState();
+        return true;
+    }
+
+    async function getCloudRole() {
+        const client = initSupabaseClient();
+        if (!client) return null;
+
+        const { data, error } = await client
+            .from(CLOUD_ROLE_TABLE)
+            .select("role")
+            .maybeSingle();
+
+        if (error) return null;
+        return data?.role || null;
+    }
+
+    function queueRemoteSave() {
+        if (!getSupabaseEnabled() || !isAdminMode()) return;
+        window.clearTimeout(remoteSaveTimer);
+        remoteSaveTimer = window.setTimeout(() => {
+            void flushRemoteSave();
+        }, 420);
+    }
+
+    async function flushRemoteSave(force = false) {
+        if (!getSupabaseEnabled() || (!isAdminMode() && !force)) return;
+        if (remoteSaveInFlight) {
+            remoteSaveQueued = true;
+            return;
+        }
+
+        remoteSaveInFlight = true;
+        remoteSaveQueued = false;
+
+        const client = initSupabaseClient();
+        const payload = {
+            slug: CLOUD_TREE_SLUG,
+            data: graph.toJSON(),
+            updated_at: new Date().toISOString()
+        };
+
+        const { error } = await client
+            .from(CLOUD_TREE_TABLE)
+            .upsert(payload, { onConflict: "slug" });
+
+        remoteSaveInFlight = false;
+
+        if (error) {
+            showCustomAlert(t("cloudSaveFail"));
+            return;
+        }
+
+        state.cloudSyncEnabled = true;
+        state.cloudDataLoaded = true;
+        if (remoteSaveQueued) {
+            remoteSaveQueued = false;
+            void flushRemoteSave();
+        }
+    }
+
+    async function signInCloudAdmin() {
+        const client = initSupabaseClient();
+        if (!client) {
+            showCustomAlert(t("cloudSdkMissing"));
+            return false;
+        }
+
+        const email = getEl("adminEmailInput").value.trim();
+        const password = getEl("adminPasswordInput").value;
+        if (!email || !password) {
+            showCustomAlert(t("adminLoginFailed"));
+            return false;
+        }
+
+        const { error } = await client.auth.signInWithPassword({ email, password });
+        if (error) {
+            showCustomAlert(t("adminLoginFailed"));
+            return false;
+        }
+
+        const role = await getCloudRole();
+        if (role !== "admin") {
+            await client.auth.signOut();
+            showCustomAlert(t("adminRoleDenied"));
+            return false;
+        }
+
+        state.cloudSyncEnabled = true;
+        const loaded = await loadRemoteGraph(false);
+        if (!loaded && graph.people.size) {
+            await flushRemoteSave(true);
+        }
+        showCustomAlert(t("cloudSyncReady"));
+        return true;
+    }
+
+    async function signOutCloudAdmin() {
+        const client = initSupabaseClient();
+        if (!client) return;
+        await client.auth.signOut();
     }
 
     function normalizeBioTranslations(value, fallback = "") {
@@ -693,6 +1008,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function resolveAccessMode(code, requestedMode) {
+        if (getSupabaseEnabled() && requestedMode === "admin") {
+            return null;
+        }
+
         if (!getRemoteAuthEnabled()) {
             const detectedMode = Object.entries(ACCESS_CODES).find(([, value]) => value === code)?.[0];
             const finalMode = detectedMode || requestedMode;
@@ -751,6 +1070,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!window.flatpickr) {
             return {
                 clear: () => {},
+                setDate: () => {},
                 set: () => {},
                 open: () => {},
                 _input: document.querySelector(selector)
@@ -767,6 +1087,25 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function setPickerValue(picker, inputId, value) {
+        const normalized = String(value || "").trim();
+        const input = getEl(inputId);
+        if (picker && typeof picker.setDate === "function") {
+            picker.setDate(normalized, false, "d.m.Y");
+        } else if (input) {
+            input.value = normalized;
+        }
+        if (input) input.value = normalized;
+    }
+
+    function getPickerValue(picker, inputId) {
+        if (picker && picker._input) {
+            return String(picker._input.value || "").trim();
+        }
+        const input = getEl(inputId);
+        return input ? String(input.value || "").trim() : "";
+    }
+
     function getCalendarLocale() {
         if (state.language === "ru" && window.flatpickr && flatpickr.l10ns && flatpickr.l10ns.ru) return flatpickr.l10ns.ru;
         if (state.language === "uz") return uzLocale;
@@ -776,6 +1115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function saveGraph() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(graph.toJSON()));
+            queueRemoteSave();
         } catch (error) {
             showCustomAlert(t("saveError"));
         }
@@ -962,6 +1302,8 @@ document.addEventListener("DOMContentLoaded", () => {
             getEl("accessHint").textContent = t("authRemoteHint");
         }
         updateAccessCodeToggleUi();
+        updatePasswordToggleUi("toggleAdminPasswordVisibility", "adminPasswordInput");
+        updateAccessGateUi();
         updateEmptyState();
         updateFocusPanel();
         renderProfileMapPlaces(graph.getPerson(graph.getFocus()));
@@ -996,11 +1338,121 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("imageLightboxPreview").removeAttribute("src");
     }
 
+    function buildFeedbackDraft() {
+        const focusedPerson = graph.getPerson(graph.getFocus());
+        return {
+            subject: t("feedbackMailSubject"),
+            body: [
+            t("feedbackMailIntro"),
+            "",
+            `${t("feedbackMailPerson")}: ${focusedPerson?.name || "—"}`,
+            `${t("feedbackMailChange")}:`,
+            "",
+            "",
+            `${t("feedbackMailContact")}:`
+            ].join("\n")
+        };
+    }
+
+    async function copyTextToClipboard(value) {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            await navigator.clipboard.writeText(value);
+            return true;
+        }
+
+        const helper = document.createElement("textarea");
+        helper.value = value;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        document.body.appendChild(helper);
+        helper.select();
+        const copied = document.execCommand("copy");
+        helper.remove();
+        return copied;
+    }
+
+    function openFeedbackModal() {
+        getEl("feedbackEmailValue").textContent = FEEDBACK_EMAIL;
+        getEl("feedbackModal").classList.remove("hidden");
+    }
+
+    function closeFeedbackModal() {
+        getEl("feedbackModal").classList.add("hidden");
+    }
+
+    function openFeedbackGmail() {
+        const draft = buildFeedbackDraft();
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(FEEDBACK_EMAIL)}&su=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`;
+        window.open(gmailUrl, "_blank", "noopener");
+    }
+
+    function updateAccessGateUi() {
+        const useCloudAdmin = getSupabaseConfigured() && state.pendingMode === "admin";
+        getEl("codeAccessPanel").classList.toggle("hidden", useCloudAdmin);
+        getEl("adminAuthPanel").classList.toggle("hidden", !useCloudAdmin);
+
+        const hint = getEl("accessHint");
+        if (!hint) return;
+
+        if (useCloudAdmin) {
+            hint.textContent = t("adminAuthHint");
+            return;
+        }
+
+        if (getSupabaseConfigured()) {
+            hint.textContent = t("viewerCloudHint");
+            return;
+        }
+
+        if (getRemoteAuthEnabled()) {
+            hint.textContent = t("authRemoteHint");
+            return;
+        }
+
+        hint.textContent = t("accessHint");
+    }
+
+    async function applyAccessMode(finalMode, showToast = true, skipRemoteLoad = false) {
+        state.mode = finalMode;
+        state.pendingMode = finalMode;
+        persistMode();
+        state.isMobileTreeFocus = false;
+        setFocusPanelVisibility(false);
+        updateModeUi();
+        getEl("accessGate").classList.add("hidden");
+        getEl("accessCodeInput").value = "";
+        getEl("accessCodeInput").type = "password";
+        getEl("adminPasswordInput").value = "";
+        updateAccessCodeToggleUi();
+        updatePasswordToggleUi("toggleAdminPasswordVisibility", "adminPasswordInput");
+
+        if (!skipRemoteLoad && getSupabaseEnabled()) {
+            await loadRemoteGraph(false);
+        }
+
+        if (showToast) {
+            showCustomAlert(isAdminMode() ? t("accessAdminReady") : t("accessViewerReady"));
+        }
+
+        updateFocusPanel();
+        if (finalMode === "viewer") {
+            maybeOpenViewerGuide();
+        } else {
+            closeViewerGuide();
+            setMobileTreeFocus(false);
+        }
+    }
+
     function initAccessGate() {
         const gate = getEl("accessGate");
         const input = getEl("accessCodeInput");
         const unlockBtn = getEl("unlockBtn");
         const toggleBtn = getEl("toggleAccessCodeVisibility");
+        const adminEmailInput = getEl("adminEmailInput");
+        const adminPasswordInput = getEl("adminPasswordInput");
+        const adminLoginBtn = getEl("adminLoginBtn");
+        const adminToggleBtn = getEl("toggleAdminPasswordVisibility");
         const hint = getEl("accessHint");
 
         if (hint && getRemoteAuthEnabled()) {
@@ -1009,10 +1461,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelectorAll("[data-mode-trigger]").forEach((button) => {
             button.addEventListener("click", () => {
-                state.pendingMode = button.dataset.mode;
+                state.pendingMode = button.dataset.modeTrigger;
                 updateAccessModeButtons();
-                input.focus();
-                input.select();
+                updateAccessGateUi();
+                if (getSupabaseConfigured() && state.pendingMode === "admin") {
+                    adminEmailInput.focus();
+                    adminEmailInput.select();
+                } else {
+                    input.focus();
+                    input.select();
+                }
             });
         });
 
@@ -1022,6 +1480,21 @@ document.addEventListener("DOMContentLoaded", () => {
         input.addEventListener("keydown", (event) => {
             if (event.key === "Enter") unlockWithCode();
         });
+        adminLoginBtn.addEventListener("click", () => {
+            unlockAdminCloud();
+        });
+        adminEmailInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                unlockAdminCloud();
+            }
+        });
+        adminPasswordInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                unlockAdminCloud();
+            }
+        });
         toggleBtn.addEventListener("click", () => {
             input.type = input.type === "password" ? "text" : "password";
             updateAccessCodeToggleUi();
@@ -1029,13 +1502,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const length = input.value.length;
             input.setSelectionRange(length, length);
         });
+        adminToggleBtn.addEventListener("click", () => {
+            adminPasswordInput.type = adminPasswordInput.type === "password" ? "text" : "password";
+            updatePasswordToggleUi("toggleAdminPasswordVisibility", "adminPasswordInput");
+            adminPasswordInput.focus();
+            const length = adminPasswordInput.value.length;
+            adminPasswordInput.setSelectionRange(length, length);
+        });
         updateAccessCodeToggleUi();
+        updatePasswordToggleUi("toggleAdminPasswordVisibility", "adminPasswordInput");
+        if (SUPABASE_CONFIG && SUPABASE_CONFIG.adminEmail) {
+            adminEmailInput.value = SUPABASE_CONFIG.adminEmail;
+        }
+        updateAccessGateUi();
 
         if (state.mode) {
             gate.classList.add("hidden");
         } else {
             updateAccessModeButtons();
-            input.focus();
+            if (getSupabaseConfigured() && state.pendingMode === "admin") {
+                adminEmailInput.focus();
+            } else {
+                input.focus();
+            }
         }
     }
 
@@ -1059,24 +1548,18 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const finalMode = authResult.mode;
-        state.mode = finalMode;
-        state.pendingMode = finalMode;
-        persistMode();
-        state.isMobileTreeFocus = false;
-        setFocusPanelVisibility(false);
-        updateModeUi();
-        getEl("accessGate").classList.add("hidden");
-        input.value = "";
-        input.type = "password";
-        updateAccessCodeToggleUi();
-        showCustomAlert(isAdminMode() ? t("accessAdminReady") : t("accessViewerReady"));
-        updateFocusPanel();
-        if (finalMode === "viewer") {
-            maybeOpenViewerGuide();
-        } else {
-            closeViewerGuide();
-            setMobileTreeFocus(false);
+        await applyAccessMode(authResult.mode);
+    }
+
+    async function unlockAdminCloud() {
+        const adminLoginBtn = getEl("adminLoginBtn");
+        adminLoginBtn.disabled = true;
+        const success = await signInCloudAdmin();
+        adminLoginBtn.disabled = false;
+        if (!success) return;
+        await applyAccessMode("admin", true, true);
+        if (!state.cloudDataLoaded && graph.people.size) {
+            await flushRemoteSave(true);
         }
     }
 
@@ -1118,10 +1601,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateAccessModeButtons() {
         document.querySelectorAll("[data-mode-trigger]").forEach((button) => {
-            const isActive = button.dataset.mode === state.pendingMode;
+            const isActive = button.dataset.modeTrigger === state.pendingMode;
             button.classList.toggle("accent-fill", isActive);
             button.classList.toggle("primary", !isActive);
         });
+        updateAccessGateUi();
     }
 
     function initSearch() {
@@ -1226,7 +1710,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.15));
         getEl("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel * 0.85));
-        getEl("modeSwitchBtn").addEventListener("click", () => {
+        getEl("modeSwitchBtn").addEventListener("click", async () => {
+            if (getSupabaseEnabled() && isAdminMode()) {
+                await signOutCloudAdmin();
+                state.cloudSyncEnabled = false;
+            }
             state.mode = null;
             persistMode();
             state.pendingMode = "viewer";
@@ -1257,9 +1745,24 @@ document.addEventListener("DOMContentLoaded", () => {
             renderFamilyStory();
             getEl("familyStoryModal").classList.remove("hidden");
         });
+        getEl("viewerFeedbackBtn").addEventListener("click", openFeedbackModal);
+        getEl("viewerFeedbackMobileBtn").addEventListener("click", openFeedbackModal);
         getEl("closeFamilyStoryBtn").addEventListener("click", () => getEl("familyStoryModal").classList.add("hidden"));
         getEl("familyStoryModal").addEventListener("click", (event) => {
             if (event.target.id === "familyStoryModal") getEl("familyStoryModal").classList.add("hidden");
+        });
+        getEl("closeFeedbackModalBtn").addEventListener("click", closeFeedbackModal);
+        getEl("feedbackModal").addEventListener("click", (event) => {
+            if (event.target.id === "feedbackModal") closeFeedbackModal();
+        });
+        getEl("openFeedbackGmailBtn").addEventListener("click", openFeedbackGmail);
+        getEl("copyFeedbackEmailBtn").addEventListener("click", async () => {
+            const copied = await copyTextToClipboard(FEEDBACK_EMAIL);
+            if (copied) showCustomAlert(t("emailCopied"));
+        });
+        getEl("copyFeedbackTextBtn").addEventListener("click", async () => {
+            const copied = await copyTextToClipboard(buildFeedbackDraft().body);
+            if (copied) showCustomAlert(t("feedbackCopied"));
         });
 
         document.querySelectorAll("[data-date-trigger]").forEach((button) => {
@@ -2141,8 +2644,8 @@ document.addEventListener("DOMContentLoaded", () => {
         getEl("fMaidenName").value = person.maidenName || "";
         getEl("modalAvatarPreview").src = getPhotoSrc(person.photo);
         getEl("modalAvatarPreview").onclick = () => openImageLightbox(getPhotoSrc(person.photo));
-        getEl("fBirth").value = person.birthDate || "";
-        getEl("fDeath").value = person.deathDate || "";
+        setPickerValue(birthPicker, "fBirth", person.birthDate || "");
+        setPickerValue(deathPicker, "fDeath", person.deathDate || "");
         state.draftDetailsTranslations = normalizeDetailsTranslations(person.detailsTranslations, {
             birthPlace: person.birthPlace || "",
             deathPlace: person.deathPlace || "",
@@ -2154,7 +2657,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         setBioTranslationsToInputs(person.bioTranslations, person.bio || "");
         setActiveBioLanguage(translations[state.language] ? state.language : "ru");
-        getEl("fMarriageDate").value = person.marriageDate || "";
+        setPickerValue(marriagePicker, "fMarriageDate", person.marriageDate || "");
         renderPhotoGallery(person.photoGallery || [], person);
 
         const syncMapPlacesPreview = () => {
@@ -2178,6 +2681,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         aliveToggle.onchange = () => {
             if (aliveToggle.checked) deathPicker.clear();
+            if (aliveToggle.checked) setPickerValue(deathPicker, "fDeath", "");
             updateDeathInput(aliveToggle.checked, deathInput);
         };
 
@@ -2233,10 +2737,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!guardAdminAction()) return;
             person.name = getEl("fName").value.trim() || t("noName");
             person.maidenName = getEl("fMaidenName").value.trim();
-            person.birthDate = getEl("fBirth").value.trim();
-            person.marriageDate = getEl("fMarriageDate").value.trim();
+            person.birthDate = getPickerValue(birthPicker, "fBirth");
+            person.marriageDate = getPickerValue(marriagePicker, "fMarriageDate");
             person.isAlive = aliveToggle.checked;
-            person.deathDate = person.isAlive ? "" : getEl("fDeath").value.trim();
+            person.deathDate = person.isAlive ? "" : getPickerValue(deathPicker, "fDeath");
             syncCurrentProfileLanguageFields();
             person.detailsTranslations = normalizeDetailsTranslations(state.draftDetailsTranslations, {});
             person.birthPlace = person.detailsTranslations.ru.birthPlace || "";

@@ -1339,6 +1339,12 @@ textarea:disabled {
     margin-top: 10px;
 }
 
+.access-stack {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
 .password-input-wrap {
     position: relative;
 }
@@ -1390,6 +1396,13 @@ textarea:disabled {
     line-height: 1.65;
 }
 
+.access-subhint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
 .guide-card {
     width: min(480px, 96vw);
 }
@@ -1404,6 +1417,30 @@ textarea:disabled {
 .guide-points {
     display: grid;
     gap: 10px;
+}
+
+.feedback-email-card {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 14px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--card-strong), transparent 6%);
+}
+
+.feedback-email-label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.feedback-email-value {
+    word-break: break-word;
+    font-size: 16px;
+}
+
+.feedback-actions {
+    grid-template-columns: 1fr 1fr;
 }
 
 .guide-point {
@@ -1822,7 +1859,7 @@ span.flatpickr-weekday {
         bottom: calc(14px + env(safe-area-inset-bottom));
         z-index: 129;
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
         pointer-events: none;
     }
@@ -1839,6 +1876,12 @@ span.flatpickr-weekday {
         min-height: 46px;
         padding: 10px 12px;
         pointer-events: auto;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.2;
+        text-align: center;
     }
 
     .mobile-back-to-menu {
@@ -1927,6 +1970,10 @@ span.flatpickr-weekday {
     .guide-card {
         width: 100vw;
         border-radius: 28px 28px 0 0;
+    }
+
+    .feedback-actions {
+        grid-template-columns: 1fr;
     }
 
     .access-actions .glass-btn {

@@ -26,25 +26,46 @@
                 <button type="button" class="glass-btn" data-mode-trigger="viewer" data-i18n="enterViewer">Войти как гость</button>
             </div>
 
-            <label class="input-label" for="accessCodeInput" data-i18n="accessLabel">Код доступа</label>
             <div id="accessLanguageSwitcher" class="segment-control access-language-switcher" aria-label="Language">
                 <button class="segment-btn active" type="button" data-lang="ru">RU</button>
                 <button class="segment-btn" type="button" data-lang="uz">UZ</button>
                 <button class="segment-btn" type="button" data-lang="en">EN</button>
             </div>
 
-            <div class="access-input-row">
-                <div class="password-input-wrap">
-                    <input type="password" id="accessCodeInput" class="neomorph-input" data-i18n-placeholder="accessPlaceholder" placeholder="Введите код" autocomplete="current-password">
-                    <button type="button" id="toggleAccessCodeVisibility" class="glass-btn icon-btn password-toggle" aria-label="Показать код" aria-pressed="false">
-                        <svg class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <path class="eye-outline" d="M2 12C4.8 7.5 8.1 5.2 12 5.2C15.9 5.2 19.2 7.5 22 12C19.2 16.5 15.9 18.8 12 18.8C8.1 18.8 4.8 16.5 2 12Z"></path>
-                            <circle class="eye-pupil" cx="12" cy="12" r="3.1"></circle>
-                            <path class="eye-slash" d="M4 4L20 20"></path>
-                        </svg>
-                    </button>
+            <div id="codeAccessPanel">
+                <label class="input-label" for="accessCodeInput" data-i18n="accessLabel">Код доступа</label>
+                <div class="access-input-row">
+                    <div class="password-input-wrap">
+                        <input type="password" id="accessCodeInput" class="neomorph-input" data-i18n-placeholder="accessPlaceholder" placeholder="Введите код" autocomplete="current-password">
+                        <button type="button" id="toggleAccessCodeVisibility" class="glass-btn icon-btn password-toggle" aria-label="Показать код" aria-pressed="false">
+                            <svg class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path class="eye-outline" d="M2 12C4.8 7.5 8.1 5.2 12 5.2C15.9 5.2 19.2 7.5 22 12C19.2 16.5 15.9 18.8 12 18.8C8.1 18.8 4.8 16.5 2 12Z"></path>
+                                <circle class="eye-pupil" cx="12" cy="12" r="3.1"></circle>
+                                <path class="eye-slash" d="M4 4L20 20"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <button type="button" id="unlockBtn" class="glass-btn accent-fill" data-i18n="unlock">Открыть</button>
                 </div>
-                <button type="button" id="unlockBtn" class="glass-btn accent-fill" data-i18n="unlock">Открыть</button>
+            </div>
+
+            <div id="adminAuthPanel" class="hidden">
+                <label class="input-label" for="adminEmailInput" data-i18n="adminEmailLabel">Email администратора</label>
+                <div class="access-stack">
+                    <input type="email" id="adminEmailInput" class="neomorph-input" data-i18n-placeholder="adminEmailPlaceholder" placeholder="you@example.com" autocomplete="username">
+                    <div class="password-input-wrap">
+                        <input type="password" id="adminPasswordInput" class="neomorph-input" data-i18n-placeholder="adminPasswordPlaceholder" placeholder="Введите пароль" autocomplete="current-password">
+                        <button type="button" id="toggleAdminPasswordVisibility" class="glass-btn icon-btn password-toggle" aria-label="Показать пароль" aria-pressed="false">
+                            <svg class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path class="eye-outline" d="M2 12C4.8 7.5 8.1 5.2 12 5.2C15.9 5.2 19.2 7.5 22 12C19.2 16.5 15.9 18.8 12 18.8C8.1 18.8 4.8 16.5 2 12Z"></path>
+                                <circle class="eye-pupil" cx="12" cy="12" r="3.1"></circle>
+                                <path class="eye-slash" d="M4 4L20 20"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <button type="button" id="adminLoginBtn" class="glass-btn accent-fill" data-i18n="adminLogin">Войти в админку</button>
+                    <p class="access-subhint" data-i18n="adminCloudHint">Безопасный вход администратора работает через Supabase.</p>
+                </div>
             </div>
 
             <p id="accessHint" class="access-hint" data-i18n="accessHint">Подсказка: позже это можно заменить на настоящую авторизацию с сервером.</p>
@@ -92,6 +113,7 @@
 
                 <button id="exportBtn" class="glass-btn" type="button" data-i18n="exportPng">Скачать PNG</button>
                 <button id="familyStoryBtn" class="glass-btn" type="button" data-i18n="familyStory">История рода</button>
+                <button id="viewerFeedbackBtn" class="glass-btn viewer-only" type="button" data-i18n="suggestUpdate">Предложить правку</button>
                 <button id="createPersonBtn" class="glass-btn primary admin-only" type="button" data-i18n="createPerson">Добавить человека</button>
                 <button id="modeSwitchBtn" class="glass-btn" type="button" data-i18n="switchMode">Сменить режим</button>
             </div>
@@ -133,6 +155,7 @@
     <div class="mobile-viewer-actions viewer-only">
         <button id="focusTreeMobileBtn" class="glass-btn accent-fill" type="button" data-i18n="openTreeMode">К древу</button>
         <button id="openGuideBtn" class="glass-btn" type="button" data-i18n="howItWorks">Как это работает</button>
+        <button id="viewerFeedbackMobileBtn" class="glass-btn" type="button" data-i18n="suggestUpdate">Предложить правку</button>
     </div>
 
     <div id="mobileBackToMenu" class="mobile-back-to-menu hidden viewer-only">
@@ -375,6 +398,23 @@
         </div>
     </div>
 
+    <div id="feedbackModal" class="modal-overlay hidden">
+        <div class="modal-card guide-card reveal reveal-up">
+            <h3 data-i18n="feedbackModalTitle">Предложить правку</h3>
+            <p class="guide-copy" data-i18n="feedbackModalText">Если заметили ошибку или хотите дополнить историю семьи, отправьте сообщение владельцу сайта.</p>
+            <div class="feedback-email-card">
+                <span class="feedback-email-label" data-i18n="feedbackEmailLabel">Почта для связи</span>
+                <strong id="feedbackEmailValue" class="feedback-email-value">mmirkamalov0210@gmail.com</strong>
+            </div>
+            <div class="modal-actions feedback-actions">
+                <button id="openFeedbackGmailBtn" class="glass-btn accent-fill" type="button" data-i18n="openGmail">Открыть Gmail</button>
+                <button id="copyFeedbackEmailBtn" class="glass-btn" type="button" data-i18n="copyEmail">Скопировать почту</button>
+                <button id="copyFeedbackTextBtn" class="glass-btn" type="button" data-i18n="copyTemplate">Скопировать текст</button>
+                <button id="closeFeedbackModalBtn" class="glass-btn" type="button" data-i18n="close">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <div id="imageLightboxModal" class="modal-overlay hidden">
         <div class="image-lightbox-card reveal reveal-scale">
             <button class="close-x" id="closeImageLightbox" type="button" aria-label="Закрыть">&times;</button>
@@ -384,7 +424,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth-config.js"></script>
+    <script src="supabase-config.js"></script>
     <script src="system.js"></script>
     <script src="script.js"></script>
 </body>

@@ -1856,6 +1856,7 @@ span.flatpickr-weekday {
     body.mobile-tree-focus .ui-shell {
         transform: translateY(calc(-1 * var(--top-ui-height) - 18px));
         opacity: 0;
+        visibility: hidden;
         pointer-events: none;
         transition: transform 0.28s ease, opacity 0.24s ease;
     }

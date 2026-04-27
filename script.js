@@ -537,6 +537,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 button.disabled = !showBackMenu;
             });
         }
+
+        syncMobileShellInteractivity();
+    }
+
+    function syncMobileShellInteractivity() {
+        const shouldLock = state.mode === "viewer" && state.isMobileTreeFocus && window.innerWidth < 768;
+        document.querySelectorAll(".ui-shell button, .ui-shell input").forEach((element) => {
+            if (shouldLock) {
+                if (!element.dataset.lockedDisabledState) {
+                    element.dataset.lockedDisabledState = element.disabled ? "1" : "0";
+                }
+                element.disabled = true;
+                return;
+            }
+
+            if (!Object.prototype.hasOwnProperty.call(element.dataset, "lockedDisabledState")) return;
+            element.disabled = element.dataset.lockedDisabledState === "1";
+            delete element.dataset.lockedDisabledState;
+        });
     }
 
     function updateAccessCodeToggleUi() {

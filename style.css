@@ -294,6 +294,8 @@ body.locale-transition .full-profile-card {
     color: var(--muted);
     font-size: 14px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
 }
 
 .search-column {
@@ -326,6 +328,9 @@ body.locale-transition .full-profile-card {
     margin-top: 10px;
     font-size: 14px;
     font-weight: 800;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-wrap: pretty;
 }
 
 .mode-badge,
@@ -451,6 +456,10 @@ body.locale-transition .full-profile-card {
     border-radius: 16px;
     font-size: 14px;
     font-weight: 800;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: normal;
+    text-align: center;
 }
 
 .glass-btn.primary {
@@ -663,6 +672,9 @@ textarea:disabled {
     color: var(--muted);
     font-size: 14px;
     line-height: 1.85;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-wrap: pretty;
 }
 
 .story-preview {
@@ -670,6 +682,9 @@ textarea:disabled {
     color: var(--text);
     font-size: 14px;
     line-height: 1.9;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-wrap: pretty;
 }
 
 .rel-section {
@@ -693,6 +708,8 @@ textarea:disabled {
     border-radius: 18px;
     font-size: 12px;
     font-weight: 800;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .rel-btn span {
@@ -1870,9 +1887,11 @@ span.flatpickr-weekday {
         bottom: calc(14px + env(safe-area-inset-bottom));
         z-index: 129;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
         gap: 8px;
         pointer-events: none;
+        max-width: 320px;
+        margin-inline: auto;
     }
 
     body.viewer-mode .mobile-viewer-actions.viewer-only {
@@ -1893,10 +1912,6 @@ span.flatpickr-weekday {
         justify-content: center;
         line-height: 1.2;
         text-align: center;
-    }
-
-    .mobile-viewer-actions .glass-btn:last-child {
-        grid-column: 1 / -1;
     }
 
     .mobile-back-to-menu {

@@ -1809,11 +1809,11 @@ span.flatpickr-weekday {
     }
 
     .canvas-area {
-        inset: calc(var(--top-ui-height) + 96px) 0 0 0;
+        inset: calc(var(--top-ui-height) + 8px) 0 0 0;
     }
 
     #viewport {
-        height: calc(100dvh - var(--top-ui-height) - 96px);
+        height: calc(100dvh - var(--top-ui-height) - 8px);
     }
 
     .empty-state {
@@ -1886,16 +1886,18 @@ span.flatpickr-weekday {
     }
 
     .mobile-viewer-actions {
-        position: fixed;
-        left: 10px;
-        right: 10px;
-        top: calc(var(--top-ui-height) + 8px);
+        position: relative;
+        left: auto;
+        right: auto;
+        top: auto;
         bottom: auto;
-        z-index: 110;
+        z-index: 20;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
         gap: 8px;
         pointer-events: none;
+        max-width: 360px;
+        margin: 14px auto calc(18px + env(safe-area-inset-bottom));
         padding: 10px;
         border-radius: 24px;
         background: color-mix(in srgb, var(--card), transparent 6%);
@@ -1925,10 +1927,6 @@ span.flatpickr-weekday {
         text-align: center;
     }
 
-    .mobile-viewer-actions .glass-btn:last-child {
-        grid-column: 1 / -1;
-    }
-
     .mobile-back-to-menu {
         position: fixed;
         top: calc(10px + env(safe-area-inset-top));
@@ -1950,11 +1948,14 @@ span.flatpickr-weekday {
     }
 
     body.viewer-mode:not(.mobile-tree-focus) .canvas-area {
-        inset: calc(var(--top-ui-height) + 96px) 0 0 0;
+        position: relative;
+        inset: auto;
+        margin-top: calc(var(--top-ui-height) + 8px);
+        min-height: calc(100dvh - var(--top-ui-height) - 8px);
     }
 
     body.viewer-mode:not(.mobile-tree-focus) #viewport {
-        height: calc(100dvh - var(--top-ui-height) - 96px);
+        height: calc(100dvh - var(--top-ui-height) - 8px);
     }
 
     body.admin-mode .canvas-area {

@@ -639,6 +639,7 @@
         }
 
         syncMobileShellInteractivity();
+        updateMobileViewportMetrics();
     }
 
     function syncMobileShellInteractivity() {
@@ -1794,10 +1795,19 @@
 
     function updateMobileViewportMetrics() {
         const topBar = document.querySelector(".top-bar");
+        const mobileDock = document.querySelector(".mobile-viewer-actions");
         const topBarHeight = state.isMobileTreeFocus
             ? 0
             : (topBar ? Math.ceil(topBar.getBoundingClientRect().height) : 0);
+        const dockHeight = window.innerWidth <= 768 &&
+            state.mode === "viewer" &&
+            !state.isMobileTreeFocus &&
+            mobileDock &&
+            !mobileDock.classList.contains("hidden")
+            ? Math.ceil(mobileDock.getBoundingClientRect().height)
+            : 0;
         document.documentElement.style.setProperty("--top-ui-height", `${topBarHeight}px`);
+        document.documentElement.style.setProperty("--mobile-bottom-dock-height", `${dockHeight}px`);
         if (window.innerWidth > 768 && state.isMobileTreeFocus) {
             state.isMobileTreeFocus = false;
             document.body.classList.remove("mobile-tree-focus");

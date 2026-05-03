@@ -4,6 +4,7 @@
     --theme-origin-x: 50vw;
     --theme-origin-y: 20vh;
     --top-ui-height: 180px;
+    --mobile-bottom-dock-height: 0px;
     --bg: #eef1e8;
     --bg-secondary: rgba(255, 255, 255, 0.44);
     --card: rgba(255, 253, 248, 0.84);
@@ -1743,6 +1744,7 @@ span.flatpickr-weekday {
 @media (max-width: 768px) {
     body {
         background-attachment: fixed;
+        overflow: hidden;
     }
 
     .ui-shell {
@@ -1864,7 +1866,8 @@ span.flatpickr-weekday {
     .floating-mobile-tools {
         left: auto;
         right: 12px;
-        bottom: calc(14px + env(safe-area-inset-bottom));
+        bottom: calc(var(--mobile-bottom-dock-height) + 14px + env(safe-area-inset-bottom));
+        z-index: 132;
     }
 
     .mobile-zoom-controls {
@@ -1882,18 +1885,21 @@ span.flatpickr-weekday {
     }
 
     .mobile-viewer-actions {
-        position: relative;
-        left: auto;
-        right: auto;
-        bottom: auto;
-        z-index: 20;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        z-index: 131;
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         pointer-events: none;
-        max-width: 320px;
-        margin: 10px auto calc(18px + env(safe-area-inset-bottom));
-        padding-inline: 12px;
+        padding: 10px;
+        border-radius: 24px;
+        background: color-mix(in srgb, var(--card), transparent 6%);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
     }
 
     body.viewer-mode .mobile-viewer-actions.viewer-only {
@@ -1905,15 +1911,20 @@ span.flatpickr-weekday {
     }
 
     .mobile-viewer-actions .glass-btn {
-        min-height: 48px;
-        padding: 10px 12px;
+        min-height: 46px;
+        padding: 10px 10px;
         pointer-events: auto;
-        font-size: 12px;
+        font-size: 11px;
+        font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         line-height: 1.2;
         text-align: center;
+    }
+
+    .mobile-viewer-actions .glass-btn:last-child {
+        grid-column: 1 / -1;
     }
 
     .mobile-back-to-menu {
@@ -1936,20 +1947,20 @@ span.flatpickr-weekday {
         transition: transform 0.28s ease, opacity 0.24s ease;
     }
 
-    body.viewer-mode:not(.mobile-tree-focus) {
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
     body.viewer-mode:not(.mobile-tree-focus) .canvas-area {
-        position: relative;
-        inset: auto;
-        margin-top: var(--top-ui-height);
-        min-height: calc(100dvh - var(--top-ui-height) - 8px);
+        inset: var(--top-ui-height) 0 calc(var(--mobile-bottom-dock-height) + 12px) 0;
     }
 
     body.viewer-mode:not(.mobile-tree-focus) #viewport {
-        height: calc(100dvh - var(--top-ui-height) - 8px);
+        height: calc(100dvh - var(--top-ui-height) - var(--mobile-bottom-dock-height) - 12px);
+    }
+
+    body.admin-mode .canvas-area {
+        inset: var(--top-ui-height) 0 0 0;
+    }
+
+    body.admin-mode #viewport {
+        height: calc(100dvh - var(--top-ui-height));
     }
 
     body.mobile-tree-focus .canvas-area {

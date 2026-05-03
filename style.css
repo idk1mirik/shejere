@@ -1490,13 +1490,8 @@ body.viewer-mode .admin-only {
     display: none !important;
 }
 
-body.viewer-mode .viewer-only {
+body.viewer-mode .viewer-only:not(.mobile-viewer-actions):not(.mobile-back-to-menu) {
     display: inline-flex;
-}
-
-body.viewer-mode .mobile-viewer-actions.viewer-only,
-body.viewer-mode .mobile-back-to-menu.viewer-only {
-    display: none;
 }
 
 body.admin-mode .floating-mobile-tools {
@@ -1907,11 +1902,11 @@ span.flatpickr-weekday {
     }
 
     body.viewer-mode .mobile-viewer-actions.viewer-only {
-        display: grid;
+        display: grid !important;
     }
 
     body.viewer-mode .mobile-back-to-menu.viewer-only {
-        display: block;
+        display: block !important;
     }
 
     .mobile-viewer-actions .glass-btn {

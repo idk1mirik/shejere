@@ -1744,7 +1744,8 @@ span.flatpickr-weekday {
 @media (max-width: 768px) {
     body {
         background-attachment: fixed;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     .ui-shell {
@@ -1808,11 +1809,11 @@ span.flatpickr-weekday {
     }
 
     .canvas-area {
-        inset: calc(var(--top-ui-height) + 6px) 0 0 0;
+        inset: calc(var(--top-ui-height) + 96px) 0 0 0;
     }
 
     #viewport {
-        height: calc(100dvh - var(--top-ui-height) - 6px);
+        height: calc(100dvh - var(--top-ui-height) - 96px);
     }
 
     .empty-state {
@@ -1866,7 +1867,7 @@ span.flatpickr-weekday {
     .floating-mobile-tools {
         left: auto;
         right: 12px;
-        bottom: calc(var(--mobile-bottom-dock-height) + 14px + env(safe-area-inset-bottom));
+        bottom: 14px;
         z-index: 132;
     }
 
@@ -1888,8 +1889,9 @@ span.flatpickr-weekday {
         position: fixed;
         left: 10px;
         right: 10px;
-        bottom: calc(10px + env(safe-area-inset-bottom));
-        z-index: 131;
+        top: calc(var(--top-ui-height) + 8px);
+        bottom: auto;
+        z-index: 110;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
@@ -1948,11 +1950,11 @@ span.flatpickr-weekday {
     }
 
     body.viewer-mode:not(.mobile-tree-focus) .canvas-area {
-        inset: var(--top-ui-height) 0 calc(var(--mobile-bottom-dock-height) + 12px) 0;
+        inset: calc(var(--top-ui-height) + 96px) 0 0 0;
     }
 
     body.viewer-mode:not(.mobile-tree-focus) #viewport {
-        height: calc(100dvh - var(--top-ui-height) - var(--mobile-bottom-dock-height) - 12px);
+        height: calc(100dvh - var(--top-ui-height) - 96px);
     }
 
     body.admin-mode .canvas-area {

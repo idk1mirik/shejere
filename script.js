@@ -2189,15 +2189,15 @@
         const mobile = window.innerWidth < 768;
         return {
             nodeWidth: mobile ? 182 : 216,
-            nodeHeight: mobile ? 156 : 168,
+            nodeHeight: mobile ? 150 : 168,
             nodeRadius: mobile ? 26 : 28,
             cardGap: mobile ? 28 : 42,
             spouseGap: mobile ? 28 : 34,
             verticalGap: mobile ? 228 : 270,
             photoRadius: mobile ? 29 : 32,
             photoYOffset: mobile ? -24 : -26,
-            textStartY: mobile ? 30 : 34,
-            storyY: mobile ? 82 : 88
+            textStartY: mobile ? 26 : 34,
+            storyY: mobile ? 74 : 86
         };
     }
 
@@ -2391,11 +2391,13 @@
         photo.setAttribute("preserveAspectRatio", "xMidYMid slice");
         photo.setAttribute("clip-path", `circle(${metrics.photoRadius - 3}px at ${metrics.photoRadius - 3}px ${metrics.photoRadius - 3}px)`);
 
-        const name = createText(0, metrics.textStartY, "node-name", shortenText(person.name || t("noName"), window.innerWidth < 768 ? 18 : 24));
+        const miniStory = window.innerWidth < 768 ? "" : getNodeMiniStory(person);
+        const name = createText(0, metrics.textStartY, "node-name", shortenText(person.name || t("noName"), window.innerWidth < 768 ? 16 : 22));
         const years = createText(0, metrics.textStartY + 26, "node-meta", getYearsLabel(person));
-        const story = createText(0, metrics.storyY, "node-story", shortenText(getNodeMiniStory(person), window.innerWidth < 768 ? 22 : 30));
+        const story = miniStory ? createText(0, metrics.storyY, "node-story", shortenText(miniStory, 26)) : null;
 
-        group.append(glow, card, accent, photoRing, photo, name, years, story);
+        group.append(glow, card, accent, photoRing, photo, name, years);
+        if (story) group.appendChild(story);
 
         if (missingFields.length) {
             const badge = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -2431,7 +2433,7 @@
 
     function getNodeMiniStory(person) {
         const line = getLocalizedBio(person) || getLocalizedDetail(person, "profession") || getLocalizedDetail(person, "birthPlace") || "";
-        return line || t("storyPlaceholder");
+        return line.trim();
     }
 
     function createText(x, y, className, text) {

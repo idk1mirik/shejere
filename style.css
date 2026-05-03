@@ -1199,7 +1199,7 @@ textarea:disabled {
 .node-name {
     fill: var(--text);
     font-family: 'Manrope', Arial, sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
 }
 
@@ -1207,26 +1207,27 @@ textarea:disabled {
 .node-story {
     fill: var(--muted);
     font-family: 'Manrope', Arial, sans-serif;
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 600;
 }
 
 .node-story {
     font-size: 10px;
+    opacity: 0.92;
 }
 
 @media (max-width: 768px) {
     .node-name {
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .node-meta,
     .node-story {
-        font-size: 10px;
+        font-size: 9.5px;
     }
 
     .node-story {
-        font-size: 9px;
+        display: none;
     }
 }
 
@@ -1881,17 +1882,18 @@ span.flatpickr-weekday {
     }
 
     .mobile-viewer-actions {
-        position: fixed;
-        left: 12px;
-        right: 12px;
-        bottom: calc(14px + env(safe-area-inset-bottom));
-        z-index: 129;
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        z-index: 20;
         display: grid;
         grid-template-columns: 1fr;
         gap: 8px;
         pointer-events: none;
         max-width: 320px;
-        margin-inline: auto;
+        margin: 10px auto calc(18px + env(safe-area-inset-bottom));
+        padding-inline: 12px;
     }
 
     body.viewer-mode .mobile-viewer-actions.viewer-only {
@@ -1932,6 +1934,22 @@ span.flatpickr-weekday {
         visibility: hidden;
         pointer-events: none;
         transition: transform 0.28s ease, opacity 0.24s ease;
+    }
+
+    body.viewer-mode:not(.mobile-tree-focus) {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    body.viewer-mode:not(.mobile-tree-focus) .canvas-area {
+        position: relative;
+        inset: auto;
+        margin-top: var(--top-ui-height);
+        min-height: calc(100dvh - var(--top-ui-height) - 8px);
+    }
+
+    body.viewer-mode:not(.mobile-tree-focus) #viewport {
+        height: calc(100dvh - var(--top-ui-height) - 8px);
     }
 
     body.mobile-tree-focus .canvas-area {

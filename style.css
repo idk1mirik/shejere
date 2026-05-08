@@ -1909,18 +1909,19 @@ span.flatpickr-weekday {
         bottom: auto;
         z-index: 20;
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
         pointer-events: none;
-        width: min(calc(100% - 20px), 390px);
-        max-width: 390px;
-        margin: 14px auto calc(22px + env(safe-area-inset-bottom));
+        width: auto;
+        max-width: none;
+        margin: calc(var(--top-ui-height) + 14px) 12px calc(26px + env(safe-area-inset-bottom));
         padding: 12px;
         border-radius: 24px;
         background: color-mix(in srgb, var(--card), transparent 6%);
         border: 1px solid var(--border);
         box-shadow: var(--shadow);
         backdrop-filter: blur(18px);
+        overflow: hidden;
     }
 
     body.viewer-mode .mobile-viewer-actions.viewer-only {
@@ -1933,15 +1934,24 @@ span.flatpickr-weekday {
 
     .mobile-viewer-actions .glass-btn {
         min-height: 52px;
-        padding: 13px 14px;
+        padding: 13px 10px;
+        min-width: 0;
+        max-width: 100%;
         pointer-events: auto;
-        font-size: 15px;
+        font-size: 13.5px;
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         line-height: 1.25;
         text-align: center;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
+    }
+
+    #focusTreeMobileBtn {
+        grid-column: 1 / -1;
     }
 
     .mobile-back-to-menu {
@@ -1965,18 +1975,12 @@ span.flatpickr-weekday {
     }
 
     body.viewer-mode:not(.mobile-tree-focus) .canvas-area {
-        position: relative;
-        inset: auto;
-        margin-top: calc(var(--top-ui-height) + 8px);
-        height: min(560px, 62dvh);
-        min-height: 420px;
-        max-height: 560px;
-        overflow: hidden;
+        display: none;
     }
 
     body.viewer-mode:not(.mobile-tree-focus) #viewport {
-        height: 100%;
-        min-height: 100%;
+        height: 0;
+        min-height: 0;
     }
 
     body.admin-mode .canvas-area {
@@ -1988,6 +1992,8 @@ span.flatpickr-weekday {
     }
 
     body.mobile-tree-focus .canvas-area {
+        display: block;
+        position: fixed;
         inset: 0;
     }
 

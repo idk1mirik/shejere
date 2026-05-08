@@ -1728,7 +1728,7 @@ span.flatpickr-weekday {
     }
 
     .status-strip {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
     }
 
     .tip-card {
@@ -1753,9 +1753,14 @@ span.flatpickr-weekday {
         inset: 0 0 auto;
     }
 
+    body.viewer-mode:not(.mobile-tree-focus) .ui-shell {
+        position: relative;
+        inset: auto;
+    }
+
     .top-bar {
         padding: calc(10px + env(safe-area-inset-top)) 10px 10px;
-        gap: 10px;
+        gap: 8px;
         width: 100%;
         max-width: 100vw;
     }
@@ -1909,13 +1914,13 @@ span.flatpickr-weekday {
         bottom: auto;
         z-index: 20;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 8px;
         pointer-events: none;
         width: auto;
         max-width: none;
-        margin: calc(var(--top-ui-height) + 14px) 12px calc(26px + env(safe-area-inset-bottom));
-        padding: 12px;
+        margin: 14px 16px calc(26px + env(safe-area-inset-bottom));
+        padding: 10px;
         border-radius: 24px;
         background: color-mix(in srgb, var(--card), transparent 6%);
         border: 1px solid var(--border);
@@ -1934,7 +1939,7 @@ span.flatpickr-weekday {
 
     .mobile-viewer-actions .glass-btn {
         min-height: 52px;
-        padding: 13px 10px;
+        padding: 12px 8px;
         min-width: 0;
         max-width: 100%;
         pointer-events: auto;

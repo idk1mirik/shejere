@@ -145,7 +145,7 @@
             diedLabel: "Ушел(а)",
             roleAdmin: "ADMIN",
             roleViewer: "VIEWER",
-            openTreeMode: "К древу",
+            openTreeMode: "Открыть древо",
             howItWorks: "Как это работает",
             backToMenu: "Меню",
             viewerGuideTitle: "Как смотреть древо",
@@ -308,7 +308,7 @@
             diedLabel: "Vafot etgan",
             roleAdmin: "ADMIN",
             roleViewer: "VIEWER",
-            openTreeMode: "Daraxtga",
+            openTreeMode: "Daraxtni ochish",
             howItWorks: "Qanday ishlaydi",
             backToMenu: "Menyu",
             viewerGuideTitle: "Daraxtni qanday ko'rish kerak",
@@ -471,7 +471,7 @@
             diedLabel: "Passed",
             roleAdmin: "ADMIN",
             roleViewer: "VIEWER",
-            openTreeMode: "To tree",
+            openTreeMode: "Open tree",
             howItWorks: "How it works",
             backToMenu: "Menu",
             viewerGuideTitle: "How to browse the tree",
@@ -1709,8 +1709,31 @@
             .trim();
     }
 
+    function openFamilyStoryModal() {
+        renderFamilyStory();
+        getEl("familyStoryModal").classList.remove("hidden");
+    }
+
+    async function returnToAccessGate() {
+        if (getSupabaseEnabled() && isAdminMode()) {
+            await signOutCloudAdmin();
+            state.cloudSyncEnabled = false;
+        }
+        state.mode = null;
+        persistMode();
+        state.pendingMode = "viewer";
+        state.isMobileTreeFocus = false;
+        setFocusPanelVisibility(false);
+        updateModeUi();
+        updateAccessModeButtons();
+        setMobileTreeFocus(false);
+        getEl("accessGate").classList.remove("hidden");
+        getEl("accessCodeInput").focus();
+    }
+
     function initControls() {
-        getEl("exportBtn").addEventListener("click", exportPng);
+        getEl("exportBtn").addEventListener("click", (event) => exportPng(event.currentTarget));
+        getEl("exportMobileBtn").addEventListener("click", (event) => exportPng(event.currentTarget));
         getEl("createPersonBtn").addEventListener("click", () => {
             if (!guardAdminAction()) return;
             state.currentModalTitleKey = "founderTitle";
@@ -1728,22 +1751,8 @@
         });
         getEl("zoomInBtn").addEventListener("click", () => setZoom(zoomLevel * 1.15));
         getEl("zoomOutBtn").addEventListener("click", () => setZoom(zoomLevel * 0.85));
-        getEl("modeSwitchBtn").addEventListener("click", async () => {
-            if (getSupabaseEnabled() && isAdminMode()) {
-                await signOutCloudAdmin();
-                state.cloudSyncEnabled = false;
-            }
-            state.mode = null;
-            persistMode();
-            state.pendingMode = "viewer";
-            state.isMobileTreeFocus = false;
-            setFocusPanelVisibility(false);
-            updateModeUi();
-            updateAccessModeButtons();
-            setMobileTreeFocus(false);
-            getEl("accessGate").classList.remove("hidden");
-            getEl("accessCodeInput").focus();
-        });
+        getEl("modeSwitchBtn").addEventListener("click", returnToAccessGate);
+        getEl("modeSwitchMobileBtn").addEventListener("click", returnToAccessGate);
 
         getEl("focusTreeMobileBtn").addEventListener("click", () => {
             setMobileTreeFocus(true);
@@ -1759,10 +1768,8 @@
         getEl("imageLightboxModal").addEventListener("click", (event) => {
             if (event.target.id === "imageLightboxModal") closeImageLightbox();
         });
-        getEl("familyStoryBtn").addEventListener("click", () => {
-            renderFamilyStory();
-            getEl("familyStoryModal").classList.remove("hidden");
-        });
+        getEl("familyStoryBtn").addEventListener("click", openFamilyStoryModal);
+        getEl("familyStoryMobileBtn").addEventListener("click", openFamilyStoryModal);
         getEl("viewerFeedbackBtn").addEventListener("click", openFeedbackModal);
         getEl("viewerFeedbackMobileBtn").addEventListener("click", openFeedbackModal);
         getEl("closeFamilyStoryBtn").addEventListener("click", () => getEl("familyStoryModal").classList.add("hidden"));
@@ -2186,8 +2193,28 @@
         });
 
         if (autoCenter && coords[focusId]) {
-            const targetX = window.innerWidth / 2 - coords[focusId].x * zoomLevel;
-            const targetY = window.innerHeight / 2 - coords[focusId].y * zoomLevel;
+            const viewportBox = svg.getBoundingClientRect();
+            const viewportWidth = viewportBox.width || window.innerWidth;
+            const viewportHeight = viewportBox.height || window.innerHeight;
+            const topBar = document.querySelector(".top-bar");
+            const desktopTopCover = window.innerWidth > 768 && topBar
+                ? Math.min(Math.ceil(topBar.getBoundingClientRect().height) + 24, viewportHeight * 0.42)
+                : 0;
+            const padding = window.innerWidth < 768 ? 18 : 34;
+            const availableLeft = padding;
+            const availableTop = desktopTopCover + padding;
+            const availableWidth = Math.max(260, viewportWidth - padding * 2);
+            const availableHeight = Math.max(260, viewportHeight - availableTop - padding);
+            const bounds = getLayoutBounds(visibleIds, coords, metrics);
+            const fitZoom = Math.min(
+                availableWidth / Math.max(bounds.width, 1),
+                availableHeight / Math.max(bounds.height, 1)
+            );
+            const maxAutoZoom = window.innerWidth < 768 ? 0.82 : 0.9;
+            const minAutoZoom = window.innerWidth < 768 ? 0.72 : 0.58;
+            zoomLevel = Math.max(minAutoZoom, Math.min(zoomLevel, maxAutoZoom, fitZoom));
+            const targetX = availableLeft + availableWidth / 2 - bounds.centerX * zoomLevel;
+            const targetY = availableTop + availableHeight / 2 - bounds.centerY * zoomLevel;
             animateCameraTo(targetX, targetY);
         } else {
             updateTransform();
@@ -2198,12 +2225,12 @@
     function getLayoutMetrics() {
         const mobile = window.innerWidth < 768;
         return {
-            nodeWidth: mobile ? 182 : 216,
-            nodeHeight: mobile ? 150 : 168,
+            nodeWidth: mobile ? 214 : 232,
+            nodeHeight: mobile ? 162 : 176,
             nodeRadius: mobile ? 26 : 28,
-            cardGap: mobile ? 28 : 42,
-            spouseGap: mobile ? 28 : 34,
-            verticalGap: mobile ? 228 : 270,
+            cardGap: mobile ? 34 : 46,
+            spouseGap: mobile ? 34 : 38,
+            verticalGap: mobile ? 236 : 278,
             photoRadius: mobile ? 29 : 32,
             photoYOffset: mobile ? -24 : -26,
             textStartY: mobile ? 26 : 34,
@@ -2285,6 +2312,28 @@
         });
 
         return { visibleIds, coords };
+    }
+
+    function getLayoutBounds(visibleIds, coords, metrics) {
+        const points = Array.from(visibleIds)
+            .map((id) => coords[id])
+            .filter(Boolean);
+
+        if (!points.length) {
+            return { centerX: 0, centerY: 0, width: metrics.nodeWidth, height: metrics.nodeHeight };
+        }
+
+        const minX = Math.min(...points.map((point) => point.x - metrics.nodeWidth / 2));
+        const maxX = Math.max(...points.map((point) => point.x + metrics.nodeWidth / 2));
+        const minY = Math.min(...points.map((point) => point.y - metrics.nodeHeight / 2));
+        const maxY = Math.max(...points.map((point) => point.y + metrics.nodeHeight / 2));
+
+        return {
+            centerX: (minX + maxX) / 2,
+            centerY: (minY + maxY) / 2,
+            width: maxX - minX,
+            height: maxY - minY
+        };
     }
 
     function getGroupPreferredX(group, coords, focusId) {
@@ -2401,9 +2450,12 @@
         photo.setAttribute("preserveAspectRatio", "xMidYMid slice");
         photo.setAttribute("clip-path", `circle(${metrics.photoRadius - 3}px at ${metrics.photoRadius - 3}px ${metrics.photoRadius - 3}px)`);
 
-        const miniStory = window.innerWidth < 768 ? "" : getNodeMiniStory(person);
-        const name = createText(0, metrics.textStartY, "node-name", shortenText(person.name || t("noName"), window.innerWidth < 768 ? 16 : 22));
-        const years = createText(0, metrics.textStartY + 26, "node-meta", getYearsLabel(person));
+        const isMobileNode = window.innerWidth < 768;
+        const miniStory = isMobileNode ? "" : getNodeMiniStory(person);
+        const nameLines = splitTextLines(person.name || t("noName"), isMobileNode ? 17 : 21, 2);
+        const name = createTextBlock(0, metrics.textStartY, "node-name", nameLines, isMobileNode ? 15 : 17);
+        const yearsOffset = nameLines.length > 1 ? (isMobileNode ? 32 : 36) : 24;
+        const years = createText(0, metrics.textStartY + yearsOffset, "node-meta", getYearsLabel(person));
         const story = miniStory ? createText(0, metrics.storyY, "node-story", shortenText(miniStory, 26)) : null;
 
         group.append(glow, card, accent, photoRing, photo, name, years);
@@ -2457,8 +2509,58 @@
         return node;
     }
 
+    function createTextBlock(x, y, className, lines, lineHeight) {
+        const node = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        const safeLines = lines.length ? lines : [""];
+        const firstLineY = safeLines.length > 1 ? y - lineHeight / 2 : y;
+
+        node.setAttribute("x", String(x));
+        node.setAttribute("y", String(firstLineY));
+        node.setAttribute("text-anchor", "middle");
+        node.setAttribute("dominant-baseline", "middle");
+        node.setAttribute("class", className);
+
+        safeLines.forEach((line, index) => {
+            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+            tspan.setAttribute("x", String(x));
+            if (index > 0) tspan.setAttribute("dy", String(lineHeight));
+            tspan.textContent = line;
+            node.appendChild(tspan);
+        });
+
+        return node;
+    }
+
+    function splitTextLines(text, maxLength, maxLines = 2) {
+        const clean = String(text || "").replace(/\s+/g, " ").trim();
+        if (!clean) return [""];
+        if (Array.from(clean).length <= maxLength) return [clean];
+
+        const words = clean.split(" ");
+        const lines = [];
+        let current = "";
+
+        words.forEach((word) => {
+            const next = current ? `${current} ${word}` : word;
+            if (Array.from(next).length <= maxLength) {
+                current = next;
+                return;
+            }
+            if (current) lines.push(current);
+            current = word;
+        });
+
+        if (current) lines.push(current);
+        if (lines.length <= maxLines) return lines.map((line) => shortenText(line, maxLength));
+
+        const visible = lines.slice(0, maxLines);
+        visible[maxLines - 1] = shortenText(lines.slice(maxLines - 1).join(" "), maxLength);
+        return visible;
+    }
+
     function shortenText(text, maxLength) {
-        return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
+        const chars = Array.from(String(text || ""));
+        return chars.length > maxLength ? `${chars.slice(0, Math.max(0, maxLength - 3)).join("")}...` : chars.join("");
     }
 
     function getYearsLabel(person) {
@@ -2838,13 +2940,13 @@
         if (deathPicker && deathPicker._input) deathPicker._input.disabled = isAlive || readonly;
     }
 
-    async function exportPng() {
+    async function exportPng(triggerButton = null) {
         if (!graph.people.size) {
             showCustomAlert(t("addFirstPerson"));
             return;
         }
 
-        const btn = getEl("exportBtn");
+        const btn = triggerButton || getEl("exportBtn");
         const originalText = t("exportPng");
         btn.textContent = t("exporting");
         btn.disabled = true;
